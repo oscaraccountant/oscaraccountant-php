@@ -1,0 +1,9 @@
+# Composer installs the package from the archive of its tag: only src/, composer.json and the pages ship.
+/tests export-ignore
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/composer.lock export-ignore
