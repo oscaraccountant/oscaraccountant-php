@@ -35,6 +35,7 @@ namespace OscarAccountant\Generated\Enums;
  * * `vat.prepare` - vat.prepare
  * * `vat.file` - vat.file
  * * `payments.manage` - payments.manage
+ * * `employees.submit` - employees.submit
  * * `agent.use` - agent.use
  *
  * Every enum is open: a field of a model holds a value this client does not know as a string.
@@ -69,5 +70,6 @@ enum PermissionEnum: string
     case VatPrepare = 'vat.prepare';
     case VatFile = 'vat.file';
     case PaymentsManage = 'payments.manage';
+    case EmployeesSubmit = 'employees.submit';
     case AgentUse = 'agent.use';
 }

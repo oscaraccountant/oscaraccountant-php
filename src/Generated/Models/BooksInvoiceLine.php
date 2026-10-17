@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksInvoiceLine extends JsonModel
 {
-    private const FIELDS = ['id', 'line_no', 'kind', 'description', 'quantity', 'unit', 'unit_price_minor', 'allowance_minor', 'charge_minor', 'net_minor', 'vat_code', 'vat_rate_bps', 'tax_minor', 'gross_minor', 'account_id', 'account_code', 'expense_role', 'deductible_bps', 'business_use_bps', 'fixed_asset', 'fixed_asset_id', 'fixed_asset_component_id', 'fixed_asset_link'];
+    private const FIELDS = ['id', 'line_no', 'kind', 'description', 'quantity', 'unit', 'unit_price_minor', 'unit_price', 'allowance_minor', 'charge_minor', 'net_minor', 'vat_code', 'vat_rate_bps', 'tax_minor', 'gross_minor', 'account_id', 'account_code', 'expense_role', 'deductible_bps', 'business_use_bps', 'fixed_asset', 'fixed_asset_id', 'fixed_asset_component_id', 'fixed_asset_link'];
 
     public function __construct(
         public readonly string $id,
@@ -31,7 +31,14 @@ final class BooksInvoiceLine extends JsonModel
          */
         public readonly ?string $quantity,
         public readonly ?string $unit,
+        /**
+         * The unit price in whole minor units; null on an item line whose price has a fraction of a minor unit.
+         */
         public readonly ?int $unit_price_minor,
+        /**
+         * The unit price in major units, a decimal string of at most 6 decimals without trailing zeros (`150.334`); null on a line without a price.
+         */
+        public readonly ?string $unit_price,
         public readonly int $allowance_minor,
         public readonly int $charge_minor,
         public readonly int $net_minor,
@@ -83,6 +90,7 @@ final class BooksInvoiceLine extends JsonModel
             quantity: Decode::required($data, 'quantity', $path, Decode::nullable(Decode::string(...))),
             unit: Decode::required($data, 'unit', $path, Decode::nullable(Decode::string(...))),
             unit_price_minor: Decode::required($data, 'unit_price_minor', $path, Decode::nullable(Decode::int(...))),
+            unit_price: Decode::required($data, 'unit_price', $path, Decode::nullable(Decode::string(...))),
             allowance_minor: Decode::required($data, 'allowance_minor', $path, Decode::int(...)),
             charge_minor: Decode::required($data, 'charge_minor', $path, Decode::int(...)),
             net_minor: Decode::required($data, 'net_minor', $path, Decode::int(...)),
@@ -112,6 +120,7 @@ final class BooksInvoiceLine extends JsonModel
             'quantity' => $this->quantity,
             'unit' => $this->unit,
             'unit_price_minor' => $this->unit_price_minor,
+            'unit_price' => $this->unit_price,
             'allowance_minor' => $this->allowance_minor,
             'charge_minor' => $this->charge_minor,
             'net_minor' => $this->net_minor,

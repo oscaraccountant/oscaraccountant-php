@@ -12,6 +12,8 @@ use OscarAccountant\Generated\Resources\BankTransactionsResource;
 use OscarAccountant\Generated\Resources\CompaniesResource;
 use OscarAccountant\Generated\Resources\DimensionsResource;
 use OscarAccountant\Generated\Resources\DocumentsResource;
+use OscarAccountant\Generated\Resources\EmployeesResource;
+use OscarAccountant\Generated\Resources\EmployeeSubmissionsResource;
 use OscarAccountant\Generated\Resources\FilesResource;
 use OscarAccountant\Generated\Resources\GeneralLedgerResource;
 use OscarAccountant\Generated\Resources\InboxResource;
@@ -20,8 +22,10 @@ use OscarAccountant\Generated\Resources\MeResource;
 use OscarAccountant\Generated\Resources\OpenItemsResource;
 use OscarAccountant\Generated\Resources\OrganizationsResource;
 use OscarAccountant\Generated\Resources\PartiesResource;
+use OscarAccountant\Generated\Resources\PayRunsResource;
 use OscarAccountant\Generated\Resources\PeriodsResource;
 use OscarAccountant\Generated\Resources\ReportsResource;
+use OscarAccountant\Generated\Resources\TaxAccountResource;
 use OscarAccountant\Generated\Resources\TrialBalanceResource;
 use OscarAccountant\Generated\Resources\VatCodesResource;
 use OscarAccountant\Generated\Resources\VatPreviewResource;
@@ -65,6 +69,16 @@ abstract class GeneratedClient implements Runtime
     public readonly DocumentsResource $documents;
 
     /**
+     * The `employee_submissions` operations.
+     */
+    public readonly EmployeeSubmissionsResource $employeeSubmissions;
+
+    /**
+     * The `employees` operations.
+     */
+    public readonly EmployeesResource $employees;
+
+    /**
      * The `files` operations.
      */
     public readonly FilesResource $files;
@@ -105,6 +119,11 @@ abstract class GeneratedClient implements Runtime
     public readonly PartiesResource $parties;
 
     /**
+     * The `pay_runs` operations.
+     */
+    public readonly PayRunsResource $payRuns;
+
+    /**
      * The `periods` operations.
      */
     public readonly PeriodsResource $periods;
@@ -113,6 +132,11 @@ abstract class GeneratedClient implements Runtime
      * The `reports` operations.
      */
     public readonly ReportsResource $reports;
+
+    /**
+     * The `tax_account` operations.
+     */
+    public readonly TaxAccountResource $taxAccount;
 
     /**
      * The `trial_balance` operations.
@@ -137,6 +161,8 @@ abstract class GeneratedClient implements Runtime
         $this->companies = new CompaniesResource($this);
         $this->dimensions = new DimensionsResource($this);
         $this->documents = new DocumentsResource($this);
+        $this->employeeSubmissions = new EmployeeSubmissionsResource($this);
+        $this->employees = new EmployeesResource($this);
         $this->files = new FilesResource($this);
         $this->generalLedger = new GeneralLedgerResource($this);
         $this->inbox = new InboxResource($this);
@@ -145,8 +171,10 @@ abstract class GeneratedClient implements Runtime
         $this->openItems = new OpenItemsResource($this);
         $this->organizations = new OrganizationsResource($this);
         $this->parties = new PartiesResource($this);
+        $this->payRuns = new PayRunsResource($this);
         $this->periods = new PeriodsResource($this);
         $this->reports = new ReportsResource($this);
+        $this->taxAccount = new TaxAccountResource($this);
         $this->trialBalance = new TrialBalanceResource($this);
         $this->vatCodes = new VatCodesResource($this);
         $this->vatPreview = new VatPreviewResource($this);

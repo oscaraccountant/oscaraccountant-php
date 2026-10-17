@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace OscarAccountant\Generated\Models;
 
+use OscarAccountant\Generated\Enums\KycLanguageEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -15,13 +16,20 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksPartyDefaults extends JsonModel
 {
-    private const FIELDS = ['expense_role', 'vat_code', 'currency', 'payment_days'];
+    private const FIELDS = ['expense_role', 'vat_code', 'currency', 'payment_days', 'language'];
 
     public function __construct(
         public readonly ?string $expense_role,
         public readonly ?string $vat_code,
         public readonly ?string $currency,
         public readonly ?int $payment_days,
+        /**
+         * The language a new own sales invoice to the party starts in; null: no preference.
+         *
+         * * `et` - et
+         * * `en` - en
+         */
+        public readonly KycLanguageEnum|string|null $language,
     ) {}
 
     /**
@@ -34,6 +42,7 @@ final class BooksPartyDefaults extends JsonModel
             vat_code: Decode::required($data, 'vat_code', $path, Decode::nullable(Decode::string(...))),
             currency: Decode::required($data, 'currency', $path, Decode::nullable(Decode::string(...))),
             payment_days: Decode::required($data, 'payment_days', $path, Decode::nullable(Decode::int(...))),
+            language: Decode::required($data, 'language', $path, Decode::nullable(Decode::enum(KycLanguageEnum::class))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -44,6 +53,7 @@ final class BooksPartyDefaults extends JsonModel
             'vat_code' => $this->vat_code,
             'currency' => $this->currency,
             'payment_days' => $this->payment_days,
+            'language' => Encode::enum($this->language),
         ]);
     }
 }

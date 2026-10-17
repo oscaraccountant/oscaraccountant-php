@@ -17,7 +17,7 @@ use OscarAccountant\Generated\Runtime\Omit;
  */
 final class InvoiceLineRequest extends JsonModel
 {
-    private const FIELDS = ['kind', 'description', 'quantity', 'unit', 'unit_price_minor', 'allowance_minor', 'charge_minor', 'net_minor', 'vat_code', 'vat_rate_bps', 'tax_minor', 'account_code', 'expense_role', 'deductible_bps', 'business_use_bps', 'fixed_asset', 'fixed_asset_id', 'fixed_asset_component_id', 'fixed_asset_link'];
+    private const FIELDS = ['kind', 'description', 'quantity', 'unit', 'unit_price_minor', 'unit_price', 'allowance_minor', 'charge_minor', 'net_minor', 'vat_code', 'vat_rate_bps', 'tax_minor', 'account_code', 'expense_role', 'deductible_bps', 'business_use_bps', 'fixed_asset', 'fixed_asset_id', 'fixed_asset_component_id', 'fixed_asset_link'];
 
     public function __construct(
         /**
@@ -27,7 +27,14 @@ final class InvoiceLineRequest extends JsonModel
         public readonly string|Omit|null $description = Omit::Value,
         public readonly string|Omit|null $quantity = Omit::Value,
         public readonly string|Omit|null $unit = Omit::Value,
+        /**
+         * The unit price in whole minor units. `unit_price` also takes a fraction of a minor unit.
+         */
         public readonly int|Omit|null $unit_price_minor = Omit::Value,
+        /**
+         * The unit price in major units, a decimal string of at most 6 decimals (`150.334`). The books compute the net as quantity x unit price, rounded half up to the minor unit. With `unit_price_minor` too, both must name the same price.
+         */
+        public readonly string|Omit|null $unit_price = Omit::Value,
         public readonly int|Omit $allowance_minor = Omit::Value,
         public readonly int|Omit $charge_minor = Omit::Value,
         public readonly int|Omit|null $net_minor = Omit::Value,
@@ -78,6 +85,7 @@ final class InvoiceLineRequest extends JsonModel
             quantity: Decode::omittable($data, 'quantity', $path, Decode::nullable(Decode::string(...))),
             unit: Decode::omittable($data, 'unit', $path, Decode::nullable(Decode::string(...))),
             unit_price_minor: Decode::omittable($data, 'unit_price_minor', $path, Decode::nullable(Decode::int(...))),
+            unit_price: Decode::omittable($data, 'unit_price', $path, Decode::nullable(Decode::string(...))),
             allowance_minor: Decode::omittable($data, 'allowance_minor', $path, Decode::int(...)),
             charge_minor: Decode::omittable($data, 'charge_minor', $path, Decode::int(...)),
             net_minor: Decode::omittable($data, 'net_minor', $path, Decode::nullable(Decode::int(...))),
@@ -103,6 +111,7 @@ final class InvoiceLineRequest extends JsonModel
             'quantity' => $this->quantity,
             'unit' => $this->unit,
             'unit_price_minor' => $this->unit_price_minor,
+            'unit_price' => $this->unit_price,
             'allowance_minor' => $this->allowance_minor,
             'charge_minor' => $this->charge_minor,
             'net_minor' => $this->net_minor,

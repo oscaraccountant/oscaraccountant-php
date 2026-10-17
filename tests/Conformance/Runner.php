@@ -322,7 +322,23 @@ final class Runner
             throw new CaseMismatch('The call did not give a model.');
         }
 
-        return $value->toArray();
+        return self::plain($value->toArray());
+    }
+
+    /**
+     * A value with every `\stdClass` turned into an array, as the case JSON is read: a field of any JSON value
+     * (`mixed`) keeps a JSON object of a response as a `\stdClass`.
+     */
+    private static function plain(mixed $value): mixed
+    {
+        if ($value instanceof \stdClass) {
+            $value = get_object_vars($value);
+        }
+        if (\is_array($value)) {
+            return array_map(self::plain(...), $value);
+        }
+
+        return $value;
     }
 
     /**

@@ -35,7 +35,7 @@ final class HelpersTest extends TestCase
         yield ['http://localhost:3500', 'http://localhost:3500'];
         yield ['http://127.0.0.1', 'http://127.0.0.1'];
         yield ['http://[::1]:8300/', 'http://[::1]:8300'];
-        yield ['HTTP://omarchy.personal:3500', 'http://omarchy.personal:3500'];
+        yield ['HTTP://devbox.personal:8080', 'http://devbox.personal:8080'];
     }
 
     #[DataProvider('goodUrls')]

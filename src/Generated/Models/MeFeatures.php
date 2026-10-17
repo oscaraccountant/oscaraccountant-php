@@ -15,7 +15,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class MeFeatures extends JsonModel
 {
-    private const FIELDS = ['agent', 'inbox'];
+    private const FIELDS = ['agent', 'inbox', 'employees'];
 
     public function __construct(
         /**
@@ -26,6 +26,10 @@ final class MeFeatures extends JsonModel
          * The invoice inbox, a forwarding address for each company. Off, its endpoints answer 409 inbox_disabled.
          */
         public readonly bool $inbox,
+        /**
+         * The employee register and its sync with TÖR. Off, its endpoints answer 409 employees_disabled.
+         */
+        public readonly bool $employees,
     ) {}
 
     /**
@@ -36,6 +40,7 @@ final class MeFeatures extends JsonModel
         return (new static(
             agent: Decode::required($data, 'agent', $path, Decode::bool(...)),
             inbox: Decode::required($data, 'inbox', $path, Decode::bool(...)),
+            employees: Decode::required($data, 'employees', $path, Decode::bool(...)),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -44,6 +49,7 @@ final class MeFeatures extends JsonModel
         return Encode::fields([
             'agent' => $this->agent,
             'inbox' => $this->inbox,
+            'employees' => $this->employees,
         ]);
     }
 }

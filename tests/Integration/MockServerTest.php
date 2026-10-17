@@ -20,6 +20,7 @@ use OscarAccountant\Generated\Models\CreatePartyPayloadRequest;
 use OscarAccountant\Generated\Models\IssueInvoiceBodyRequest;
 use OscarAccountant\Generated\Models\RecordInvoicePayloadRequest;
 use OscarAccountant\Generated\Models\ReviseInvoiceBodyRequest;
+use OscarAccountant\Generated\Models\SubmissionRequestRequest;
 use OscarAccountant\Internal\Hooks;
 use OscarAccountant\Oscar;
 use OscarAccountant\RequestOptions;
@@ -174,6 +175,19 @@ final class MockServerTest extends TestCase
         self::assertGreaterThan(0, $count($oscar->inbox->listEmails($company)));
         $oscar->inbox->rotate($company);
 
+        self::assertSame('120.00', $oscar->taxAccount->balance($company)->total);
+        self::assertSame(2, $count($oscar->employees->list($company)));
+        self::assertCount(1, $oscar->employees->retrieve($company, 'emp0000001')->employments);
+        self::assertSame(2, $count($oscar->employeeSubmissions->list($company)));
+        self::assertSame('sub0000001', $oscar->employeeSubmissions->retrieve($company, 'sub0000001')->id);
+        $oscar->employeeSubmissions->create($company, SubmissionRequestRequest::fromArray([
+            'kind' => 'end',
+            'employment_id' => 'emt0000001',
+            'end' => ['end_date' => '2026-12-31', 'reason_code' => 1],
+        ]));
+        self::assertSame(2, $count($oscar->payRuns->list($company)));
+        self::assertCount(1, $oscar->payRuns->retrieve($company, 'pyr0000001')->employees);
+
         $oscar->invoices->record($company, self::record());
         $oscar->invoices->cancel($company, self::INVOICE, new CancelInvoiceBodyRequest(reason: 'Entered twice'));
         $oscar->invoices->issue($company, self::INVOICE, body: new IssueInvoiceBodyRequest(number: 'S-2026-001'));
@@ -188,7 +202,7 @@ final class MockServerTest extends TestCase
         $bad = array_filter($log, static fn(array $entry): bool => ($entry['errors'] ?? []) !== [] || $entry['status'] >= 400);
         self::assertSame([], array_values($bad));
         $operations = array_unique(array_map(static fn(array $entry): mixed => $entry['operation_id'], $log), \SORT_REGULAR);
-        self::assertCount(36, $operations);
+        self::assertCount(44, $operations);
     }
 
     public function testPagination(): void
