@@ -42,7 +42,7 @@ final class InboxOrigin extends JsonModel
          */
         public readonly string $forwarded_by,
         /**
-         * Neither the sender nor the address that forwarded it is a member of the organization.
+         * Neither the sender nor the address that forwarded it is a member of the company.
          */
         public readonly bool $unknown_sender,
         /**

@@ -53,6 +53,14 @@ namespace OscarAccountant\Generated\Enums;
  * * `distribution_tax_liability` - distribution_tax_liability
  * * `share_capital` - share_capital
  * * `legal_reserve` - legal_reserve
+ * * `vat_output_oss` - vat_output_oss
+ * * `vat_output_ioss` - vat_output_ioss
+ * * `vat_output_gb` - vat_output_gb
+ * * `vat_input_gb` - vat_input_gb
+ * * `vat_output_au` - vat_output_au
+ * * `vat_output_import` - vat_output_import
+ * * `vat_input_import` - vat_input_import
+ * * `vat_input_fixed_asset` - vat_input_fixed_asset
  *
  * Every enum is open: a field of a model holds a value this client does not know as a string.
  */
@@ -104,4 +112,12 @@ enum BooksExemptionRoleEnum: string
     case DistributionTaxLiability = 'distribution_tax_liability';
     case ShareCapital = 'share_capital';
     case LegalReserve = 'legal_reserve';
+    case VatOutputOss = 'vat_output_oss';
+    case VatOutputIoss = 'vat_output_ioss';
+    case VatOutputGb = 'vat_output_gb';
+    case VatInputGb = 'vat_input_gb';
+    case VatOutputAu = 'vat_output_au';
+    case VatOutputImport = 'vat_output_import';
+    case VatInputImport = 'vat_input_import';
+    case VatInputFixedAsset = 'vat_input_fixed_asset';
 }

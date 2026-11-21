@@ -8,6 +8,7 @@ namespace OscarAccountant\Generated\Models;
 
 use OscarAccountant\Generated\Enums\CompanyStateEnum;
 use OscarAccountant\Generated\Enums\LegalFormEnum;
+use OscarAccountant\Generated\Enums\RoleEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -17,11 +18,10 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class MeCompany extends JsonModel
 {
-    private const FIELDS = ['id', 'organization_id', 'name', 'registry_code', 'vat_number', 'legal_form', 'state'];
+    private const FIELDS = ['id', 'name', 'registry_code', 'vat_number', 'legal_form', 'state', 'role', 'is_member'];
 
     public function __construct(
         public readonly string $id,
-        public readonly string $organization_id,
         public readonly string $name,
         public readonly string $registry_code,
         public readonly string $vat_number,
@@ -32,8 +32,17 @@ final class MeCompany extends JsonModel
          * * `provisioning` - Provisioning
          * * `ready` - Ready
          * * `failed` - Failed
+         * * `deleted` - Data deleted
          */
         public readonly CompanyStateEnum|string $state,
+        /**
+         * The role the caller acts with in the company: `owner`, `member` or `viewer`. Firm staff act as owner also where they hold no membership (see `is_member`). Null when the call has no role there.
+         */
+        public readonly RoleEnum|string|null $role,
+        /**
+         * Whether the user holds a membership of the company. False for firm staff who see it without one.
+         */
+        public readonly bool $is_member,
     ) {}
 
     /**
@@ -43,12 +52,13 @@ final class MeCompany extends JsonModel
     {
         return (new static(
             id: Decode::required($data, 'id', $path, Decode::string(...)),
-            organization_id: Decode::required($data, 'organization_id', $path, Decode::string(...)),
             name: Decode::required($data, 'name', $path, Decode::string(...)),
             registry_code: Decode::required($data, 'registry_code', $path, Decode::string(...)),
             vat_number: Decode::required($data, 'vat_number', $path, Decode::string(...)),
             legal_form: Decode::required($data, 'legal_form', $path, Decode::enum(LegalFormEnum::class)),
             state: Decode::required($data, 'state', $path, Decode::enum(CompanyStateEnum::class)),
+            role: Decode::required($data, 'role', $path, Decode::nullable(Decode::enum(RoleEnum::class))),
+            is_member: Decode::required($data, 'is_member', $path, Decode::bool(...)),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -56,12 +66,13 @@ final class MeCompany extends JsonModel
     {
         return Encode::fields([
             'id' => $this->id,
-            'organization_id' => $this->organization_id,
             'name' => $this->name,
             'registry_code' => $this->registry_code,
             'vat_number' => $this->vat_number,
             'legal_form' => Encode::enum($this->legal_form),
             'state' => Encode::enum($this->state),
+            'role' => Encode::enum($this->role),
+            'is_member' => $this->is_member,
         ]);
     }
 }

@@ -15,7 +15,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksGeneralLedger extends JsonModel
 {
-    private const FIELDS = ['base_currency', 'accounts'];
+    private const FIELDS = ['base_currency', 'accounts', 'hidden_corrections'];
 
     /**
      * @param list<BooksLedgerAccount> $accounts
@@ -26,6 +26,10 @@ final class BooksGeneralLedger extends JsonModel
          */
         public readonly string $base_currency,
         public readonly array $accounts,
+        /**
+         * The `hidden_corrections` of every account, summed.
+         */
+        public readonly int $hidden_corrections,
     ) {}
 
     /**
@@ -36,6 +40,7 @@ final class BooksGeneralLedger extends JsonModel
         return (new static(
             base_currency: Decode::required($data, 'base_currency', $path, Decode::string(...)),
             accounts: Decode::required($data, 'accounts', $path, Decode::listOf(BooksLedgerAccount::fromJson(...))),
+            hidden_corrections: Decode::required($data, 'hidden_corrections', $path, Decode::int(...)),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -44,6 +49,7 @@ final class BooksGeneralLedger extends JsonModel
         return Encode::fields([
             'base_currency' => $this->base_currency,
             'accounts' => Encode::list($this->accounts, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'hidden_corrections' => $this->hidden_corrections,
         ]);
     }
 }

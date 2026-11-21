@@ -25,6 +25,10 @@ final class GeneralLedgerResource
      *
      * The general ledger: each account with its lines and running balance, in the base currency.
      *
+     * The lines of the correction pairs (an entry whose reversal is posted, and
+     * the reversal) are left out unless `include_corrections=true`; each
+     * account's `hidden_corrections` counts them. The balances count every line.
+     *
      * `GET /api/companies/{company_id}/general-ledger/`
      */
     public function retrieve(
@@ -32,6 +36,7 @@ final class GeneralLedgerResource
         ?string $accountCode = null,
         \DateTimeInterface|string|null $dateFrom = null,
         \DateTimeInterface|string|null $dateTo = null,
+        ?bool $includeCorrections = null,
         ?RequestOptions $options = null,
     ): BooksGeneralLedger {
         return $this->runtime->request(
@@ -46,6 +51,7 @@ final class GeneralLedgerResource
                     'account_code' => $accountCode,
                     'date_from' => $dateFrom,
                     'date_to' => $dateTo,
+                    'include_corrections' => $includeCorrections,
                 ],
                 body: null,
                 idempotent: false,

@@ -11,6 +11,8 @@ namespace OscarAccountant\Generated\Enums;
  */
 enum BankTransactionsListStatus: string
 {
+    case Migrated = 'migrated';
+    case Retracted = 'retracted';
     case Unmatched = 'unmatched';
     case PartMatched = 'part_matched';
     case Matched = 'matched';

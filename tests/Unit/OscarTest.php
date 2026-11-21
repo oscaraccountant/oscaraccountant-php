@@ -34,7 +34,6 @@ final class OscarTest extends TestCase
         'staff_mfa_required' => false,
         'email_verified' => true,
         'credential' => ['kind' => 'api_key', 'scopes' => ['read', 'write'], 'staff_key' => false],
-        'organizations' => [],
         'companies' => [],
         'features' => ['agent' => false, 'inbox' => false, 'employees' => false],
         'cli_min_version' => '0.1.0',

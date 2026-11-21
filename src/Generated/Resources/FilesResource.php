@@ -8,8 +8,11 @@ namespace OscarAccountant\Generated\Resources;
 
 use OscarAccountant\Download;
 use OscarAccountant\Generated\Enums\BooksDocumentKindEnum;
+use OscarAccountant\Generated\Enums\DocumentDirectionEnum;
+use OscarAccountant\Generated\Models\FileDeleteRequest;
 use OscarAccountant\Generated\Models\PaginatedStoredDocumentList;
 use OscarAccountant\Generated\Models\StoredDocument;
+use OscarAccountant\Generated\Models\StoredDocumentDetail;
 use OscarAccountant\Generated\Runtime\MultipartBody;
 use OscarAccountant\Generated\Runtime\Request;
 use OscarAccountant\Generated\Runtime\Runtime;
@@ -27,7 +30,48 @@ final class FilesResource
     ) {}
 
     /**
-     * The bytes of the file, after the permission check. PDF and images show inline.
+     * Delete the file for good: its bytes are removed at once, its open drafts are discarded, and the row stays
+     * as a tombstone (the hash, the size, the kind, the dates) in the books and in the audit log.
+     *
+     * Only a file that nothing in the books refers to, and that no payment match linked to a bank line: 409
+     * `document_in_use` otherwise (ask your accountant). 409 `document_legal_hold` under a legal hold, 409
+     * `document_system` for a file Oscar stored itself, 409 `company_data_deleted`. A 409 lists every blocker in
+     * `errors` (`code`, `kind`, `id`, `state`, `label`, `detail`); the detail of the file shows them first, as
+     * `deletion`.
+     * A file already deleted answers 204 again. The same bytes uploaded again restore the file. The body and its
+     * `reason` are optional. A repeat with the `Idempotency-Key` of a deletion answers 204 and changes nothing, also
+     * after the file was restored. 503 `file_unavailable` for a restored file while the storage has not yet deleted
+     * the bytes of its earlier deletion: try again later.
+     *
+     * `POST /api/companies/{company_id}/files/{file_id}/delete/`
+     */
+    public function delete(
+        string $companyId,
+        string $fileId,
+        ?FileDeleteRequest $body = null,
+        ?RequestOptions $options = null,
+    ): void {
+        $this->runtime->requestNoContent(
+            new Request(
+                operationId: 'companies_files_delete',
+                method: 'POST',
+                path: '/api/companies/{company_id}/files/{file_id}/delete/',
+                pathParams: [
+                    'company_id' => $companyId,
+                    'file_id' => $fileId,
+                ],
+                query: [],
+                body: $body,
+                idempotent: true,
+                response: 'none',
+            ),
+            $options,
+        );
+    }
+
+    /**
+     * The bytes of the file, after the permission check. PDF and images show inline. 410 `document_deleted`
+     * for a deleted file.
      *
      * `GET /api/companies/{company_id}/files/{file_id}/content/`
      */
@@ -55,7 +99,7 @@ final class FilesResource
     }
 
     /**
-     * One page of the company's files, newest first. Filter: `kind`.
+     * One page of the company's files, newest first. Filter: `kind`. A deleted file is left out.
      *
      * `GET /api/companies/{company_id}/files/`
      *
@@ -92,7 +136,8 @@ final class FilesResource
     }
 
     /**
-     * One file.
+     * One file, with `deletion`: whether it can be deleted now, and what stops it. A deleted file answers with
+     * its tombstone: `deleted_at` set, an empty name.
      *
      * `GET /api/companies/{company_id}/files/{file_id}/`
      */
@@ -100,7 +145,7 @@ final class FilesResource
         string $companyId,
         string $fileId,
         ?RequestOptions $options = null,
-    ): StoredDocument {
+    ): StoredDocumentDetail {
         return $this->runtime->request(
             new Request(
                 operationId: 'companies_files_retrieve',
@@ -115,7 +160,7 @@ final class FilesResource
                 idempotent: false,
                 response: 'json',
             ),
-            StoredDocument::class,
+            StoredDocumentDetail::class,
             $options,
         );
     }
@@ -127,6 +172,9 @@ final class FilesResource
      * within what the uploader may do. With `auto_process` (the batch import), the uploader must hold
      * `invoices.write`: 403 `permission_denied` for `auto_process` without `invoices.write`, 409 `not_extractable`
      * for `auto_process` on a file that is not a PDF of kind invoice, receipt or credit note.
+     * `direction` names who issued the document (`sale`: the company; `purchase`: a supplier); left out, it is
+     * detected. A sale opens a sales invoice draft that a person confirms; it is never booked by itself.
+     * 400 `direction_not_allowed` for a `direction` on a kind that is not read, or `sale` on a receipt.
      * 413 `file_too_large`, 400 `empty_file`, 415 `unsupported_file_type`.
      *
      * `POST /api/companies/{company_id}/files/`
@@ -138,6 +186,7 @@ final class FilesResource
         \DateTimeInterface|string|null $receivedOn = null,
         ?string $bankTransactionId = null,
         ?bool $autoProcess = null,
+        DocumentDirectionEnum|string|null $direction = null,
         ?RequestOptions $options = null,
     ): StoredDocument {
         return $this->runtime->request(
@@ -155,6 +204,7 @@ final class FilesResource
                         'received_on' => $receivedOn,
                         'bank_transaction_id' => $bankTransactionId,
                         'auto_process' => $autoProcess,
+                        'direction' => $direction,
                     ],
                     files: [
                         'file' => $file,

@@ -18,14 +18,10 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class Company extends JsonModel
 {
-    private const FIELDS = ['id', 'organization_id', 'name', 'registry_code', 'vat_number', 'vat_status', 'vat_status_from', 'legal_form', 'files_tsd_monthly', 'state', 'core_company_id', 'base_currency', 'created_at', 'updated_at'];
+    private const FIELDS = ['id', 'name', 'registry_code', 'vat_number', 'vat_status', 'vat_status_from', 'legal_form', 'files_tsd_monthly', 'state', 'core_company_id', 'base_currency', 'created_at', 'updated_at'];
 
     public function __construct(
         public readonly string $id,
-        /**
-         * The sqid of the company's organization, without loading it.
-         */
-        public readonly string $organization_id,
         public readonly string $name,
         public readonly string $registry_code,
         /**
@@ -66,7 +62,6 @@ final class Company extends JsonModel
     {
         return (new static(
             id: Decode::required($data, 'id', $path, Decode::string(...)),
-            organization_id: Decode::required($data, 'organization_id', $path, Decode::string(...)),
             name: Decode::required($data, 'name', $path, Decode::string(...)),
             registry_code: Decode::required($data, 'registry_code', $path, Decode::string(...)),
             vat_number: Decode::required($data, 'vat_number', $path, Decode::string(...)),
@@ -86,7 +81,6 @@ final class Company extends JsonModel
     {
         return Encode::fields([
             'id' => $this->id,
-            'organization_id' => $this->organization_id,
             'name' => $this->name,
             'registry_code' => $this->registry_code,
             'vat_number' => $this->vat_number,

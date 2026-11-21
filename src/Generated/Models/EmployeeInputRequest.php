@@ -27,6 +27,9 @@ final class EmployeeInputRequest extends JsonModel
          * The Estonian personal code: a new employee only. Sealed, never returned.
          */
         public readonly string|Omit $personal_code = Omit::Value,
+        /**
+         * A new employee with a valid Estonian personal code and no birth date gets the date the code holds.
+         */
         public readonly string|Omit|null $birth_date = Omit::Value,
         public readonly string|Omit $citizenship = Omit::Value,
         public readonly string|Omit $iban = Omit::Value,

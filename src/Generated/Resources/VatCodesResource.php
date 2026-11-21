@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Resources;
 
 use OscarAccountant\Generated\Enums\BooksInvoiceDirectionEnum;
+use OscarAccountant\Generated\Enums\BooksVatSchemeEnum;
 use OscarAccountant\Generated\Enums\BooksVatTreatmentEnum;
 use OscarAccountant\Generated\Models\BooksVatCode;
 use OscarAccountant\Generated\Models\BooksVatCodePage;
@@ -39,6 +40,7 @@ final class VatCodesResource
         ?string $cursor = null,
         BooksInvoiceDirectionEnum|string|null $direction = null,
         ?int $limit = null,
+        BooksVatSchemeEnum|string|null $specialScheme = null,
         BooksVatTreatmentEnum|string|null $treatment = null,
         ?RequestOptions $options = null,
     ): Paginator {
@@ -55,6 +57,7 @@ final class VatCodesResource
                     'cursor' => $cursor,
                     'direction' => $direction,
                     'limit' => $limit,
+                    'special_scheme' => $specialScheme,
                     'treatment' => $treatment,
                 ],
                 body: null,

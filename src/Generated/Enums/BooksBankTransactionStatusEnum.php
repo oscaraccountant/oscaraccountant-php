@@ -7,6 +7,8 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Enums;
 
 /**
+ * * `migrated` - migrated
+ * * `retracted` - retracted
  * * `unmatched` - unmatched
  * * `part_matched` - part_matched
  * * `matched` - matched
@@ -20,6 +22,8 @@ namespace OscarAccountant\Generated\Enums;
  */
 enum BooksBankTransactionStatusEnum: string
 {
+    case Migrated = 'migrated';
+    case Retracted = 'retracted';
     case Unmatched = 'unmatched';
     case PartMatched = 'part_matched';
     case Matched = 'matched';

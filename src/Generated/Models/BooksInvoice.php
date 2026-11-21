@@ -19,7 +19,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksInvoice extends JsonModel
 {
-    private const FIELDS = ['id', 'direction', 'kind', 'sign', 'state', 'number', 'party_id', 'party_name', 'corrects_invoice_id', 'origin', 'issued_at', 'cancelled_at', 'cancel_reason', 'created_at', 'reference_number', 'external_source', 'revision_id', 'revision_no', 'invoice_date', 'supply_date', 'due_date', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'amount_due_minor', 'base_gross_minor', 'base_currency', 'needs_review', 'review_note', 'open_minor', 'settlement_state'];
+    private const FIELDS = ['id', 'direction', 'kind', 'sign', 'state', 'number', 'party_id', 'party_name', 'corrects_invoice_id', 'origin', 'issued_at', 'cancelled_at', 'cancel_reason', 'created_at', 'reference_number', 'external_source', 'revision_id', 'revision_no', 'invoice_date', 'supply_date', 'due_date', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'amount_due_minor', 'base_gross_minor', 'base_currency', 'needs_review', 'review_note', 'review_decision', 'open_minor', 'settlement_state', 'posted_at'];
 
     public function __construct(
         public readonly string $id,
@@ -76,8 +76,18 @@ final class BooksInvoice extends JsonModel
          * The currency of every `*_base_minor` amount: the base currency of the books.
          */
         public readonly string $base_currency,
+        /**
+         * The current revision is flagged for a person to check (`review_note` says why) and no person marked it as reviewed (`review_decision`).
+         */
         public readonly bool $needs_review,
+        /**
+         * What the checks of the current revision found, or null. With no flag and no `review_decision` it is only information. It stays after a review decision.
+         */
         public readonly ?string $review_note,
+        /**
+         * The decision that the review flag of the current revision needs no change: who, when and the note. Null while there is none; a new revision, or a new review note, needs a new decision.
+         */
+        public readonly ?BooksInvoiceReviewDecision $review_decision,
         /**
          * What is still open of the posted invoice, in its currency: 0 when settled; null while not posted.
          */
@@ -86,6 +96,10 @@ final class BooksInvoice extends JsonModel
          * `unposted`, `unpaid`, `part_paid`, `paid`, or `overdue`: unpaid or part paid, due before today.
          */
         public readonly BooksInvoiceSettlementStateEnum|string $settlement_state,
+        /**
+         * When the current revision was posted to the ledger; null while not posted.
+         */
+        public readonly ?string $posted_at,
     ) {}
 
     /**
@@ -126,8 +140,10 @@ final class BooksInvoice extends JsonModel
             base_currency: Decode::required($data, 'base_currency', $path, Decode::string(...)),
             needs_review: Decode::required($data, 'needs_review', $path, Decode::bool(...)),
             review_note: Decode::required($data, 'review_note', $path, Decode::nullable(Decode::string(...))),
+            review_decision: Decode::required($data, 'review_decision', $path, Decode::nullable(BooksInvoiceReviewDecision::fromJson(...))),
             open_minor: Decode::required($data, 'open_minor', $path, Decode::nullable(Decode::int(...))),
             settlement_state: Decode::required($data, 'settlement_state', $path, Decode::enum(BooksInvoiceSettlementStateEnum::class)),
+            posted_at: Decode::required($data, 'posted_at', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -166,8 +182,10 @@ final class BooksInvoice extends JsonModel
             'base_currency' => $this->base_currency,
             'needs_review' => $this->needs_review,
             'review_note' => $this->review_note,
+            'review_decision' => Encode::model($this->review_decision, $json),
             'open_minor' => $this->open_minor,
             'settlement_state' => Encode::enum($this->settlement_state),
+            'posted_at' => $this->posted_at,
         ]);
     }
 }

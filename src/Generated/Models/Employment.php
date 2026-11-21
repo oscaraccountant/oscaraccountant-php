@@ -17,7 +17,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class Employment extends JsonModel
 {
-    private const FIELDS = ['id', 'toot_id', 'employment_type', 'employment_type_name', 'start_date', 'end_date', 'end_reason_code', 'work_time_rate', 'occupation_code', 'workplace_address_id', 'contract_ref', 'gross_salary_minor', 'board_fee_minor', 'currency', 'suspensions', 'tor_state_code', 'tor_state_name', 'tor_seen_at', 'source', 'status', 'registered_outside'];
+    private const FIELDS = ['id', 'toot_id', 'employment_type', 'employment_type_name', 'start_date', 'end_date', 'end_reason_code', 'work_time_rate', 'occupation_code', 'occupation_name', 'workplace_address_id', 'workplace_address', 'contract_ref', 'gross_salary_minor', 'board_fee_minor', 'currency', 'suspensions', 'tor_state_code', 'tor_state_name', 'tor_seen_at', 'source', 'status', 'registered_outside'];
 
     /**
      * @param list<Suspension> $suspensions
@@ -38,7 +38,15 @@ final class Employment extends JsonModel
         public readonly string $end_reason_code,
         public readonly ?string $work_time_rate,
         public readonly string $occupation_code,
+        /**
+         * The name of `occupation_code` in the classifier of Statistics Estonia, in the language of the answer (English when the code has an English name); empty when the code is not in the classifier.
+         */
+        public readonly string $occupation_name,
         public readonly ?int $workplace_address_id,
+        /**
+         * The full address of the workplace building (`workplace_address_id`); empty when unknown.
+         */
+        public readonly string $workplace_address,
         public readonly string $contract_ref,
         /**
          * The monthly contract gross, in cents.
@@ -76,7 +84,9 @@ final class Employment extends JsonModel
             end_reason_code: Decode::required($data, 'end_reason_code', $path, Decode::string(...)),
             work_time_rate: Decode::required($data, 'work_time_rate', $path, Decode::nullable(Decode::string(...))),
             occupation_code: Decode::required($data, 'occupation_code', $path, Decode::string(...)),
+            occupation_name: Decode::required($data, 'occupation_name', $path, Decode::string(...)),
             workplace_address_id: Decode::required($data, 'workplace_address_id', $path, Decode::nullable(Decode::int(...))),
+            workplace_address: Decode::required($data, 'workplace_address', $path, Decode::string(...)),
             contract_ref: Decode::required($data, 'contract_ref', $path, Decode::string(...)),
             gross_salary_minor: Decode::required($data, 'gross_salary_minor', $path, Decode::nullable(Decode::int(...))),
             board_fee_minor: Decode::required($data, 'board_fee_minor', $path, Decode::nullable(Decode::int(...))),
@@ -103,7 +113,9 @@ final class Employment extends JsonModel
             'end_reason_code' => $this->end_reason_code,
             'work_time_rate' => $this->work_time_rate,
             'occupation_code' => $this->occupation_code,
+            'occupation_name' => $this->occupation_name,
             'workplace_address_id' => $this->workplace_address_id,
+            'workplace_address' => $this->workplace_address,
             'contract_ref' => $this->contract_ref,
             'gross_salary_minor' => $this->gross_salary_minor,
             'board_fee_minor' => $this->board_fee_minor,

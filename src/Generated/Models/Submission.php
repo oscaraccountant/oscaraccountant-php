@@ -17,7 +17,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class Submission extends JsonModel
 {
-    private const FIELDS = ['id', 'kind', 'status', 'event_date', 'employee_id', 'employee_name', 'employment_id', 'data', 'submitted_at', 'submitted_by_staff', 'reviewed_at', 'review_reason', 'toot_id', 'tor_messages', 'tor_error_code', 'registered_at'];
+    private const FIELDS = ['id', 'kind', 'status', 'event_date', 'employee_id', 'employee_name', 'employment_id', 'data', 'names', 'submitted_at', 'submitted_by_staff', 'reviewed_at', 'review_reason', 'toot_id', 'tor_messages', 'tor_error_code', 'registered_at'];
 
     /**
      * @param list<TorMessage> $tor_messages
@@ -40,6 +40,10 @@ final class Submission extends JsonModel
          * The submitted values by field name. Never a personal code.
          */
         public readonly mixed $data,
+        /**
+         * The words of the codes in `data.employment`.
+         */
+        public readonly SubmissionNames $names,
         public readonly string $submitted_at,
         public readonly bool $submitted_by_staff,
         public readonly ?string $reviewed_at,
@@ -76,6 +80,7 @@ final class Submission extends JsonModel
             employee_name: Decode::required($data, 'employee_name', $path, Decode::string(...)),
             employment_id: Decode::required($data, 'employment_id', $path, Decode::string(...)),
             data: Decode::required($data, 'data', $path, Decode::json(...)),
+            names: Decode::required($data, 'names', $path, SubmissionNames::fromJson(...)),
             submitted_at: Decode::required($data, 'submitted_at', $path, Decode::string(...)),
             submitted_by_staff: Decode::required($data, 'submitted_by_staff', $path, Decode::bool(...)),
             reviewed_at: Decode::required($data, 'reviewed_at', $path, Decode::nullable(Decode::string(...))),
@@ -98,6 +103,7 @@ final class Submission extends JsonModel
             'employee_name' => $this->employee_name,
             'employment_id' => $this->employment_id,
             'data' => $this->data,
+            'names' => Encode::model($this->names, $json),
             'submitted_at' => $this->submitted_at,
             'submitted_by_staff' => $this->submitted_by_staff,
             'reviewed_at' => $this->reviewed_at,

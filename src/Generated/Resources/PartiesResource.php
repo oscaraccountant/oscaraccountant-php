@@ -7,11 +7,15 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Resources;
 
 use OscarAccountant\Generated\Enums\BooksPartyKindEnum;
+use OscarAccountant\Generated\Enums\PartyRoleEnum;
 use OscarAccountant\Generated\Models\BooksParty;
 use OscarAccountant\Generated\Models\BooksPartyDetail;
 use OscarAccountant\Generated\Models\BooksPartyPage;
 use OscarAccountant\Generated\Models\CreatePartyOutcome;
 use OscarAccountant\Generated\Models\CreatePartyPayloadRequest;
+use OscarAccountant\Generated\Models\PatchedPartyUpdateRequest;
+use OscarAccountant\Generated\Models\SetPartyAddressBodyRequest;
+use OscarAccountant\Generated\Models\SetPartyAddressOutcome;
 use OscarAccountant\Generated\Runtime\Request;
 use OscarAccountant\Generated\Runtime\Runtime;
 use OscarAccountant\Paginator;
@@ -61,6 +65,10 @@ final class PartiesResource
      *
      * The parties, ordered by their cleaned name. Merged parties are left out unless asked for.
      *
+     * `roles` says what each party is to the company, from its kind, its invoices and its open purchase drafts;
+     * `role` filters on the roles the books derive (an open draft aside), and `exclude_kind=employee` leaves out
+     * the employees, as the list of customers and suppliers does.
+     *
      * `GET /api/companies/{company_id}/parties/`
      *
      * @return Paginator<BooksPartyPage, BooksParty>
@@ -68,12 +76,14 @@ final class PartiesResource
     public function list(
         string $companyId,
         ?string $cursor = null,
+        BooksPartyKindEnum|string|null $excludeKind = null,
         ?string $externalKey = null,
         ?bool $includeMerged = null,
         ?bool $includeSettledExternal = null,
         BooksPartyKindEnum|string|null $kind = null,
         ?int $limit = null,
         ?string $regCode = null,
+        PartyRoleEnum|string|null $role = null,
         ?string $search = null,
         ?string $vatNumber = null,
         ?RequestOptions $options = null,
@@ -88,12 +98,14 @@ final class PartiesResource
                 ],
                 query: [
                     'cursor' => $cursor,
+                    'exclude_kind' => $excludeKind,
                     'external_key' => $externalKey,
                     'include_merged' => $includeMerged,
                     'include_settled_external' => $includeSettledExternal,
                     'kind' => $kind,
                     'limit' => $limit,
                     'reg_code' => $regCode,
+                    'role' => $role,
                     'search' => $search,
                     'vat_number' => $vatNumber,
                 ],
@@ -110,7 +122,7 @@ final class PartiesResource
     /**
      * Get a party
      *
-     * One party with its defaults.
+     * One party with its defaults and its roles.
      *
      * `GET /api/companies/{company_id}/parties/{party_id}/`
      */
@@ -131,6 +143,70 @@ final class PartiesResource
                 query: [],
                 body: null,
                 idempotent: false,
+                response: 'json',
+            ),
+            BooksPartyDetail::class,
+            $options,
+        );
+    }
+
+    /**
+     * Set the postal address of a party.
+     *
+     * Runs the core command `set_party_address`. Permission: `parties.write`. The path carries `party_id`.
+     *
+     * `POST /api/companies/{company_id}/parties/{party_id}/address`
+     */
+    public function setAddress(
+        string $companyId,
+        string $partyId,
+        ?SetPartyAddressBodyRequest $body = null,
+        ?RequestOptions $options = null,
+    ): SetPartyAddressOutcome {
+        return $this->runtime->request(
+            new Request(
+                operationId: 'commands_set_party_address',
+                method: 'POST',
+                path: '/api/companies/{company_id}/parties/{party_id}/address',
+                pathParams: [
+                    'company_id' => $companyId,
+                    'party_id' => $partyId,
+                ],
+                query: [],
+                body: $body,
+                idempotent: true,
+                response: 'json',
+            ),
+            SetPartyAddressOutcome::class,
+            $options,
+        );
+    }
+
+    /**
+     * Edit a party
+     *
+     * Changes the fields of the body (`parties.write`), within the lock rules of the party (`locks`): a locked field changes only with `override_reason`, from firm staff, and the change is audited (`party.lock_overridden`); a client gets 403 `override_not_allowed`. A locked field changed without one is 409 `party_field_locked`, one error per field. A staff key, an agent or an OAuth client that overrides a lock gets 403 `human_actor_required`: it proposes the command `override_party_lock`, and a person of the firm confirms it. The name of an Estonian company may take `register_name` without one. `is_confirmed: true` confirms the party; un-confirming needs a person (403 `human_actor_required`). Answers the party as `GET` does. With `Idempotency-Key`, a repeat with the same body replays.
+     *
+     * `PATCH /api/companies/{company_id}/parties/{party_id}/`
+     */
+    public function update(
+        string $companyId,
+        string $partyId,
+        ?PatchedPartyUpdateRequest $body = null,
+        ?RequestOptions $options = null,
+    ): BooksPartyDetail {
+        return $this->runtime->request(
+            new Request(
+                operationId: 'books_parties_update',
+                method: 'PATCH',
+                path: '/api/companies/{company_id}/parties/{party_id}/',
+                pathParams: [
+                    'company_id' => $companyId,
+                    'party_id' => $partyId,
+                ],
+                query: [],
+                body: $body,
+                idempotent: true,
                 response: 'json',
             ),
             BooksPartyDetail::class,

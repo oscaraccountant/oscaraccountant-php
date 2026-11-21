@@ -15,8 +15,11 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksBankAccount extends JsonModel
 {
-    private const FIELDS = ['id', 'provider', 'label', 'iban', 'bic', 'currency', 'account_id', 'account_code', 'is_debtor', 'active', 'created_at', 'external_account_id', 'livemode', 'fee_accrual_account_code', 'dispute_account_code', 'reserve_account_code', 'customer_party_id', 'transaction_count', 'last_booking_date', 'ledger_balance_minor', 'bank_balance_minor', 'bank_balance_on', 'ledger_balance_on_bank_date_minor', 'bank_difference_minor'];
+    private const FIELDS = ['id', 'provider', 'label', 'iban', 'bic', 'currency', 'account_id', 'account_code', 'ledger_currency', 'is_debtor', 'active', 'invoice_position', 'created_at', 'external_account_id', 'livemode', 'fee_accrual_account_code', 'dispute_account_code', 'reserve_account_code', 'customer_party_id', 'broker_key', 'mmf_account_code', 'transaction_count', 'first_booking_date', 'last_booking_date', 'booked_months', 'ledger_balance_minor', 'bank_balance_minor', 'bank_balance_on', 'ledger_balance_on_bank_date_minor', 'bank_difference_minor'];
 
+    /**
+     * @param list<string> $booked_months
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $provider,
@@ -29,8 +32,16 @@ final class BooksBankAccount extends JsonModel
          */
         public readonly string $account_id,
         public readonly string $account_code,
+        /**
+         * The currency the ledger account is kept in; null means the base currency. It can differ from `currency`.
+         */
+        public readonly ?string $ledger_currency,
         public readonly bool $is_debtor,
         public readonly bool $active,
+        /**
+         * The place of the account in the company default of the sales invoices: 1 prints first; null when it is not in the default. Set with `POST .../invoice-bank-accounts`.
+         */
+        public readonly ?int $invoice_position,
         public readonly string $created_at,
         /**
          * A payment provider feed: the account at the provider (`acct_…`).
@@ -56,8 +67,30 @@ final class BooksBankAccount extends JsonModel
          * A payment provider feed: the pooled customer party of its receipts.
          */
         public readonly ?string $customer_party_id,
+        /**
+         * A broker feed (Lightyear): the key that groups the feeds of one broker account, one per currency.
+         */
+        public readonly ?string $broker_key,
+        /**
+         * A broker feed: the account of its money market fund units, in the feed currency.
+         */
+        public readonly ?string $mmf_account_code,
+        /**
+         * The bank transactions of the account, without a transaction removed from the books (`status` `retracted`).
+         */
         public readonly int $transaction_count,
+        /**
+         * The earliest booking date of a transaction of the account, without a retracted one; null with none.
+         */
+        public readonly ?string $first_booking_date,
+        /**
+         * The latest booking date of a transaction of the account, a retracted one too (a bank feed starts after it); null with none.
+         */
         public readonly ?string $last_booking_date,
+        /**
+         * Each month (`YYYY-MM`) with at least one transaction of the account that is not retracted, in order; empty with none.
+         */
+        public readonly array $booked_months,
         /**
          * The balance of the ledger account in the feed currency.
          */
@@ -94,8 +127,10 @@ final class BooksBankAccount extends JsonModel
             currency: Decode::required($data, 'currency', $path, Decode::string(...)),
             account_id: Decode::required($data, 'account_id', $path, Decode::string(...)),
             account_code: Decode::required($data, 'account_code', $path, Decode::string(...)),
+            ledger_currency: Decode::required($data, 'ledger_currency', $path, Decode::nullable(Decode::string(...))),
             is_debtor: Decode::required($data, 'is_debtor', $path, Decode::bool(...)),
             active: Decode::required($data, 'active', $path, Decode::bool(...)),
+            invoice_position: Decode::required($data, 'invoice_position', $path, Decode::nullable(Decode::int(...))),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             external_account_id: Decode::required($data, 'external_account_id', $path, Decode::nullable(Decode::string(...))),
             livemode: Decode::required($data, 'livemode', $path, Decode::nullable(Decode::bool(...))),
@@ -103,8 +138,12 @@ final class BooksBankAccount extends JsonModel
             dispute_account_code: Decode::required($data, 'dispute_account_code', $path, Decode::nullable(Decode::string(...))),
             reserve_account_code: Decode::required($data, 'reserve_account_code', $path, Decode::nullable(Decode::string(...))),
             customer_party_id: Decode::required($data, 'customer_party_id', $path, Decode::nullable(Decode::string(...))),
+            broker_key: Decode::required($data, 'broker_key', $path, Decode::nullable(Decode::string(...))),
+            mmf_account_code: Decode::required($data, 'mmf_account_code', $path, Decode::nullable(Decode::string(...))),
             transaction_count: Decode::required($data, 'transaction_count', $path, Decode::int(...)),
+            first_booking_date: Decode::required($data, 'first_booking_date', $path, Decode::nullable(Decode::string(...))),
             last_booking_date: Decode::required($data, 'last_booking_date', $path, Decode::nullable(Decode::string(...))),
+            booked_months: Decode::required($data, 'booked_months', $path, Decode::listOf(Decode::string(...))),
             ledger_balance_minor: Decode::required($data, 'ledger_balance_minor', $path, Decode::int(...)),
             bank_balance_minor: Decode::required($data, 'bank_balance_minor', $path, Decode::nullable(Decode::int(...))),
             bank_balance_on: Decode::required($data, 'bank_balance_on', $path, Decode::nullable(Decode::string(...))),
@@ -124,8 +163,10 @@ final class BooksBankAccount extends JsonModel
             'currency' => $this->currency,
             'account_id' => $this->account_id,
             'account_code' => $this->account_code,
+            'ledger_currency' => $this->ledger_currency,
             'is_debtor' => $this->is_debtor,
             'active' => $this->active,
+            'invoice_position' => $this->invoice_position,
             'created_at' => $this->created_at,
             'external_account_id' => $this->external_account_id,
             'livemode' => $this->livemode,
@@ -133,8 +174,12 @@ final class BooksBankAccount extends JsonModel
             'dispute_account_code' => $this->dispute_account_code,
             'reserve_account_code' => $this->reserve_account_code,
             'customer_party_id' => $this->customer_party_id,
+            'broker_key' => $this->broker_key,
+            'mmf_account_code' => $this->mmf_account_code,
             'transaction_count' => $this->transaction_count,
+            'first_booking_date' => $this->first_booking_date,
             'last_booking_date' => $this->last_booking_date,
+            'booked_months' => $this->booked_months,
             'ledger_balance_minor' => $this->ledger_balance_minor,
             'bank_balance_minor' => $this->bank_balance_minor,
             'bank_balance_on' => $this->bank_balance_on,

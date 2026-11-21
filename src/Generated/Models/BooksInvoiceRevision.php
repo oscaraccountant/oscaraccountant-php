@@ -15,11 +15,13 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksInvoiceRevision extends JsonModel
 {
-    private const FIELDS = ['id', 'revision_no', 'state', 'party_id', 'party_name_raw', 'invoice_date', 'supply_date', 'due_date', 'service_from', 'service_to', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'amount_due_minor', 'base_gross_minor', 'base_currency', 'exchange_rate_id', 'fx_rate_source', 'vat_code_source', 'supplier_vat_number', 'buyer_vat_number', 'seller_snapshot', 'buyer_snapshot', 'source_payload', 'needs_review', 'review_note', 'reason', 'customer_note', 'prices_include_vat', 'language', 'base_vat', 'created_at', 'actor_id', 'command_id', 'lines', 'documents'];
+    private const FIELDS = ['id', 'revision_no', 'state', 'party_id', 'party_name_raw', 'invoice_date', 'supply_date', 'due_date', 'service_from', 'service_to', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'amount_due_minor', 'base_gross_minor', 'base_currency', 'exchange_rate_id', 'fx_rate_source', 'vat_code_source', 'supplier_vat_number', 'buyer_vat_number', 'seller_snapshot', 'buyer_snapshot', 'source_payload', 'needs_review', 'review_note', 'review_decision', 'reason', 'customer_note', 'buyer_contact_name', 'order_number', 'contract_number', 'buyer_reference', 'prices_include_vat', 'language', 'bank_account_ids', 'base_vat', 'created_at', 'actor_id', 'command_id', 'lines', 'documents', 'removed_documents'];
 
     /**
+     * @param list<string>|null $bank_account_ids
      * @param list<BooksInvoiceLine> $lines
      * @param list<BooksInvoiceDocument> $documents
+     * @param list<BooksInvoiceRemovedDocument> $removed_documents
      */
     public function __construct(
         public readonly string $id,
@@ -67,13 +69,39 @@ final class BooksInvoiceRevision extends JsonModel
          * The payload the invoice was recorded from, or null.
          */
         public readonly mixed $source_payload,
+        /**
+         * The current revision is flagged for a person to check (`review_note` says why) and no person marked it as reviewed (`review_decision`).
+         */
         public readonly bool $needs_review,
+        /**
+         * What the checks of the revision found, or null. With no flag and no `review_decision` it is only information. It stays after a review decision.
+         */
         public readonly ?string $review_note,
+        /**
+         * The decision that the review flag of the current revision needs no change: who, when and the note. Null while there is none; a new revision, or a new review note, needs a new decision.
+         */
+        public readonly ?BooksInvoiceReviewDecision $review_decision,
         public readonly ?string $reason,
         /**
          * An own sales invoice: the note printed for the customer.
          */
         public readonly ?string $customer_note,
+        /**
+         * An own sales invoice: the buyer's contact person.
+         */
+        public readonly ?string $buyer_contact_name,
+        /**
+         * An own sales invoice: the number of the buyer's order.
+         */
+        public readonly ?string $order_number,
+        /**
+         * An own sales invoice: the number of the contract with the buyer.
+         */
+        public readonly ?string $contract_number,
+        /**
+         * An own sales invoice: the reference the buyer asks for.
+         */
+        public readonly ?string $buyer_reference,
         /**
          * An own sales invoice: the unit prices of the item lines include VAT; the books computed each net.
          */
@@ -82,6 +110,10 @@ final class BooksInvoiceRevision extends JsonModel
          * An own sales invoice: the language of its document, `et` or `en`; null when unset.
          */
         public readonly ?string $language,
+        /**
+         * An own sales invoice: the bank accounts this revision prints, in order, as a person chose them; null: the company default (`invoice_position` of the bank accounts), else every active account in the invoice currency. `GET .../invoices/{invoice_id}/bank-accounts/` reads the accounts it prints.
+         */
+        public readonly ?array $bank_account_ids,
         /**
          * The VAT in the base currency of a revision in another currency that charges VAT; null otherwise, and for a draft while no rate is known.
          */
@@ -94,6 +126,10 @@ final class BooksInvoiceRevision extends JsonModel
         public readonly string $command_id,
         public readonly array $lines,
         public readonly array $documents,
+        /**
+         * The documents firm staff removed from this revision, with the reason, oldest first. `documents` leaves them out.
+         */
+        public readonly array $removed_documents,
     ) {}
 
     /**
@@ -131,16 +167,23 @@ final class BooksInvoiceRevision extends JsonModel
             source_payload: Decode::required($data, 'source_payload', $path, Decode::json(...)),
             needs_review: Decode::required($data, 'needs_review', $path, Decode::bool(...)),
             review_note: Decode::required($data, 'review_note', $path, Decode::nullable(Decode::string(...))),
+            review_decision: Decode::required($data, 'review_decision', $path, Decode::nullable(BooksInvoiceReviewDecision::fromJson(...))),
             reason: Decode::required($data, 'reason', $path, Decode::nullable(Decode::string(...))),
             customer_note: Decode::required($data, 'customer_note', $path, Decode::nullable(Decode::string(...))),
+            buyer_contact_name: Decode::required($data, 'buyer_contact_name', $path, Decode::nullable(Decode::string(...))),
+            order_number: Decode::required($data, 'order_number', $path, Decode::nullable(Decode::string(...))),
+            contract_number: Decode::required($data, 'contract_number', $path, Decode::nullable(Decode::string(...))),
+            buyer_reference: Decode::required($data, 'buyer_reference', $path, Decode::nullable(Decode::string(...))),
             prices_include_vat: Decode::required($data, 'prices_include_vat', $path, Decode::bool(...)),
             language: Decode::required($data, 'language', $path, Decode::nullable(Decode::string(...))),
+            bank_account_ids: Decode::required($data, 'bank_account_ids', $path, Decode::nullable(Decode::listOf(Decode::string(...)))),
             base_vat: Decode::required($data, 'base_vat', $path, Decode::nullable(BooksInvoiceBaseVat::fromJson(...))),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             actor_id: Decode::required($data, 'actor_id', $path, Decode::string(...)),
             command_id: Decode::required($data, 'command_id', $path, Decode::string(...)),
             lines: Decode::required($data, 'lines', $path, Decode::listOf(BooksInvoiceLine::fromJson(...))),
             documents: Decode::required($data, 'documents', $path, Decode::listOf(BooksInvoiceDocument::fromJson(...))),
+            removed_documents: Decode::required($data, 'removed_documents', $path, Decode::listOf(BooksInvoiceRemovedDocument::fromJson(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -176,16 +219,23 @@ final class BooksInvoiceRevision extends JsonModel
             'source_payload' => $this->source_payload,
             'needs_review' => $this->needs_review,
             'review_note' => $this->review_note,
+            'review_decision' => Encode::model($this->review_decision, $json),
             'reason' => $this->reason,
             'customer_note' => $this->customer_note,
+            'buyer_contact_name' => $this->buyer_contact_name,
+            'order_number' => $this->order_number,
+            'contract_number' => $this->contract_number,
+            'buyer_reference' => $this->buyer_reference,
             'prices_include_vat' => $this->prices_include_vat,
             'language' => $this->language,
+            'bank_account_ids' => $this->bank_account_ids,
             'base_vat' => Encode::model($this->base_vat, $json),
             'created_at' => $this->created_at,
             'actor_id' => $this->actor_id,
             'command_id' => $this->command_id,
             'lines' => Encode::list($this->lines, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'documents' => Encode::list($this->documents, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'removed_documents' => Encode::list($this->removed_documents, static fn(mixed $item): mixed => Encode::model($item, $json)),
         ]);
     }
 }

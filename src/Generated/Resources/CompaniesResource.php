@@ -24,26 +24,23 @@ final class CompaniesResource
     ) {}
 
     /**
-     * One page of the companies, newest first.
+     * One page of the visible companies, newest first. A staff list is written to the audit log.
      *
-     * `GET /api/organizations/{organization_id}/companies/`
+     * `GET /api/companies/`
      *
      * @return Paginator<PaginatedCompanyList, Company>
      */
     public function list(
-        string $organizationId,
         ?string $cursor = null,
         ?int $limit = null,
         ?RequestOptions $options = null,
     ): Paginator {
         return $this->runtime->paginate(
             new Request(
-                operationId: 'organizations_companies_list',
+                operationId: 'companies_list',
                 method: 'GET',
-                path: '/api/organizations/{organization_id}/companies/',
-                pathParams: [
-                    'organization_id' => $organizationId,
-                ],
+                path: '/api/companies/',
+                pathParams: [],
                 query: [
                     'cursor' => $cursor,
                     'limit' => $limit,

@@ -70,7 +70,7 @@ final class Oscar extends GeneratedClient
     private readonly Transport $transport;
 
     /**
-     * @param string|null $apiKey an organization API key (`osk_...`)
+     * @param string|null $apiKey a company API key (`osk_...`)
      * @param (callable(): string)|null $tokenProvider called before each attempt; it returns an access token
      * @param string|null $credential `'cli'`: the stored login of the `oscar` CLI, when no other credential is set
      * @param string|null $baseUrl the origin of the API, for example `http://localhost:3500`

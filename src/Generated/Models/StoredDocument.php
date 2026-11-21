@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class StoredDocument extends JsonModel
 {
-    private const FIELDS = ['id', 'kind', 'name', 'content_type', 'size_bytes', 'sha256', 'received_on', 'core_document_id', 'bank_transaction_ids', 'uploaded_by', 'origin', 'created_at'];
+    private const FIELDS = ['id', 'kind', 'name', 'content_type', 'size_bytes', 'sha256', 'received_on', 'core_document_id', 'bank_transaction_ids', 'uploaded_by', 'origin', 'created_at', 'deleted_at'];
 
     /**
      * @param list<string> $bank_transaction_ids
@@ -49,6 +49,10 @@ final class StoredDocument extends JsonModel
          */
         public readonly ?InboxOrigin $origin,
         public readonly string $created_at,
+        /**
+         * When the file was deleted, or null. A deleted file keeps its hash, size, kind and dates; its name is empty and its bytes are gone (the content answers 410 `document_deleted`).
+         */
+        public readonly ?string $deleted_at,
     ) {}
 
     /**
@@ -69,6 +73,7 @@ final class StoredDocument extends JsonModel
             uploaded_by: Decode::required($data, 'uploaded_by', $path, Decode::nullable(Decode::string(...))),
             origin: Decode::required($data, 'origin', $path, Decode::nullable(InboxOrigin::fromJson(...))),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
+            deleted_at: Decode::required($data, 'deleted_at', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -87,6 +92,7 @@ final class StoredDocument extends JsonModel
             'uploaded_by' => $this->uploaded_by,
             'origin' => Encode::model($this->origin, $json),
             'created_at' => $this->created_at,
+            'deleted_at' => $this->deleted_at,
         ]);
     }
 }

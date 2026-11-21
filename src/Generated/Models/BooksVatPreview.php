@@ -15,7 +15,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksVatPreview extends JsonModel
 {
-    private const FIELDS = ['form', 'form_version', 'period_from', 'period_to', 'boxes', 'base_currency', 'recognitions'];
+    private const FIELDS = ['form', 'form_version', 'period_from', 'period_to', 'boxes', 'base_currency', 'recognitions', 'due_date'];
 
     /**
      * @param array<string, int> $boxes
@@ -37,6 +37,10 @@ final class BooksVatPreview extends JsonModel
          * The VAT recognitions the return would include.
          */
         public readonly int $recognitions,
+        /**
+         * The deadline of the return of the period (the core calendar). A KMD: the 20th of the next month, moved to the next working day after a weekend or a public holiday; null when the period is not one calendar month. An OSS return: the last day of the month after the quarter; an IOSS return: the last day of the month after the month; null when the period is not one quarter or one month.
+         */
+        public readonly ?string $due_date = null,
     ) {}
 
     /**
@@ -52,6 +56,7 @@ final class BooksVatPreview extends JsonModel
             boxes: Decode::required($data, 'boxes', $path, Decode::mapOf(Decode::int(...))),
             base_currency: Decode::required($data, 'base_currency', $path, Decode::string(...)),
             recognitions: Decode::required($data, 'recognitions', $path, Decode::int(...)),
+            due_date: Decode::optional($data, 'due_date', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -65,6 +70,7 @@ final class BooksVatPreview extends JsonModel
             'boxes' => Encode::map($this->boxes, $json),
             'base_currency' => $this->base_currency,
             'recognitions' => $this->recognitions,
+            'due_date' => $this->due_date,
         ]);
     }
 }

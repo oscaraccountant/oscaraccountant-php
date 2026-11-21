@@ -9,6 +9,7 @@ namespace OscarAccountant\Generated\Resources;
 use OscarAccountant\Generated\Enums\BankTransactionsListOrdering;
 use OscarAccountant\Generated\Enums\BankTransactionsListStatus;
 use OscarAccountant\Generated\Enums\BooksBankDirectionEnum;
+use OscarAccountant\Generated\Enums\ReceiptStateEnum;
 use OscarAccountant\Generated\Models\BooksBankTransaction;
 use OscarAccountant\Generated\Models\BooksBankTransactionDetail;
 use OscarAccountant\Generated\Models\BooksBankTransactionPage;
@@ -31,9 +32,23 @@ final class BankTransactionsResource
      *
      * The bank transactions with their settlement status, derived on read. Ordered by booking date.
      *
-     * `has_document` and `file_ids` name the uploaded files that explain a
-     * transaction (an upload with `bank_transaction_id`). `to_explain=true`
-     * lists the payments to explain: money out still open that no file explains.
+     * `has_document` and `file_ids` name the files that explain a transaction:
+     * an upload with `bank_transaction_id`, and each file of a purchase invoice
+     * a payment allocation matched to it.
+     *
+     * `to_explain=true` lists the payments to explain ("missing receipts"): every
+     * payment out still open that no file of a matched invoice explains. Each
+     * carries `receipt_state`: `missing`, `receipt_not_booked` (a file is linked,
+     * the payment is not booked yet, `receipt_detail` says why) or
+     * `invoice_not_matched` (a posted invoice fits it, only the match is missing:
+     * `matched_invoice_candidates`, `match_proposal_id`). A `receipt_state` filter
+     * lists one state. Both add `coverage` to the page: the bank accounts and the
+     * months the answer checked, the months with no transaction and the accounts
+     * with none. A month or an account outside the coverage is not checked.
+     *
+     * A line removed from the books (`status` `retracted`) shows only for firm
+     * staff. For any other caller the list leaves it out, also with
+     * `status=retracted`, which then gives an empty list.
      *
      * `GET /api/companies/{company_id}/bank-transactions/`
      *
@@ -51,6 +66,7 @@ final class BankTransactionsResource
         BankTransactionsListOrdering|string|null $ordering = null,
         ?string $partyId = null,
         ?string $q = null,
+        ReceiptStateEnum|string|null $receiptState = null,
         ?string $statementId = null,
         BankTransactionsListStatus|string|null $status = null,
         ?bool $toExplain = null,
@@ -75,6 +91,7 @@ final class BankTransactionsResource
                     'ordering' => $ordering,
                     'party_id' => $partyId,
                     'q' => $q,
+                    'receipt_state' => $receiptState,
                     'statement_id' => $statementId,
                     'status' => $status,
                     'to_explain' => $toExplain,
@@ -93,6 +110,10 @@ final class BankTransactionsResource
      * Get a bank transaction
      *
      * One bank transaction with its source row, entries, allocations, the judgement on it, and its files.
+     *
+     * A line removed from the books (`status` `retracted`) shows only for firm
+     * staff. Any other caller gets the same 404 `not_found` as for an id that
+     * does not exist.
      *
      * `GET /api/companies/{company_id}/bank-transactions/{bank_transaction_id}/`
      */

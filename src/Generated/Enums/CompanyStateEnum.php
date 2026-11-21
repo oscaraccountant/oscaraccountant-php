@@ -10,6 +10,7 @@ namespace OscarAccountant\Generated\Enums;
  * * `provisioning` - Provisioning
  * * `ready` - Ready
  * * `failed` - Failed
+ * * `deleted` - Data deleted
  *
  * Every enum is open: a field of a model holds a value this client does not know as a string.
  */
@@ -18,4 +19,5 @@ enum CompanyStateEnum: string
     case Provisioning = 'provisioning';
     case Ready = 'ready';
     case Failed = 'failed';
+    case Deleted = 'deleted';
 }

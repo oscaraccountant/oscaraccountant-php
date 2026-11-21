@@ -11,14 +11,13 @@ use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
 
 /**
- * `GET /api/me/`: the user, the credential, and the organizations and companies the caller can see.
+ * `GET /api/me/`: the user, the credential, and the companies the caller can see.
  */
 final class Me extends JsonModel
 {
-    private const FIELDS = ['user', 'has_totp', 'staff_mfa_required', 'email_verified', 'credential', 'organizations', 'companies', 'features', 'cli_min_version'];
+    private const FIELDS = ['user', 'has_totp', 'staff_mfa_required', 'email_verified', 'credential', 'companies', 'features', 'cli_min_version'];
 
     /**
-     * @param list<MeOrganization> $organizations
      * @param list<MeCompany> $companies
      */
     public function __construct(
@@ -33,7 +32,6 @@ final class Me extends JsonModel
         public readonly bool $staff_mfa_required,
         public readonly bool $email_verified,
         public readonly MeCredential $credential,
-        public readonly array $organizations,
         public readonly array $companies,
         public readonly MeFeatures $features,
         /**
@@ -53,7 +51,6 @@ final class Me extends JsonModel
             staff_mfa_required: Decode::required($data, 'staff_mfa_required', $path, Decode::bool(...)),
             email_verified: Decode::required($data, 'email_verified', $path, Decode::bool(...)),
             credential: Decode::required($data, 'credential', $path, MeCredential::fromJson(...)),
-            organizations: Decode::required($data, 'organizations', $path, Decode::listOf(MeOrganization::fromJson(...))),
             companies: Decode::required($data, 'companies', $path, Decode::listOf(MeCompany::fromJson(...))),
             features: Decode::required($data, 'features', $path, MeFeatures::fromJson(...)),
             cli_min_version: Decode::optional($data, 'cli_min_version', $path, Decode::string(...)),
@@ -68,7 +65,6 @@ final class Me extends JsonModel
             'staff_mfa_required' => $this->staff_mfa_required,
             'email_verified' => $this->email_verified,
             'credential' => Encode::model($this->credential, $json),
-            'organizations' => Encode::list($this->organizations, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'companies' => Encode::list($this->companies, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'features' => Encode::model($this->features, $json),
             'cli_min_version' => $this->cli_min_version,

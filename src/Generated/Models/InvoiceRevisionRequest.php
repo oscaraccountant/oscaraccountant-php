@@ -17,11 +17,12 @@ use OscarAccountant\Generated\Runtime\Omit;
  */
 final class InvoiceRevisionRequest extends JsonModel
 {
-    private const FIELDS = ['party_name_raw', 'invoice_date', 'supply_date', 'due_date', 'service_from', 'service_to', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'exchange_rate_id', 'vat_code_source', 'supplier_vat_number', 'buyer_vat_number', 'source_payload', 'needs_review', 'review_note', 'received_date', 'base_tax_minor', 'customer_note', 'prices_include_vat', 'language', 'lines', 'documents'];
+    private const FIELDS = ['party_name_raw', 'invoice_date', 'supply_date', 'due_date', 'service_from', 'service_to', 'currency', 'net_minor', 'tax_minor', 'gross_minor', 'prepaid_minor', 'rounding_minor', 'exchange_rate_id', 'vat_code_source', 'supplier_vat_number', 'buyer_vat_number', 'source_payload', 'needs_review', 'review_note', 'received_date', 'base_tax_minor', 'customer_note', 'buyer_contact_name', 'order_number', 'contract_number', 'buyer_reference', 'prices_include_vat', 'language', 'lines', 'documents', 'bank_account_ids'];
 
     /**
      * @param list<InvoiceLineRequest> $lines
      * @param list<InvoiceDocumentRequest>|Omit $documents
+     * @param list<string>|Omit|null $bank_account_ids
      */
     public function __construct(
         public readonly string $invoice_date,
@@ -60,6 +61,22 @@ final class InvoiceRevisionRequest extends JsonModel
          */
         public readonly string|Omit|null $customer_note = Omit::Value,
         /**
+         * An own sales invoice: the buyer's contact person, one line, at most 100 characters.
+         */
+        public readonly string|Omit|null $buyer_contact_name = Omit::Value,
+        /**
+         * An own sales invoice: the number of the buyer's order, one line, at most 100 characters.
+         */
+        public readonly string|Omit|null $order_number = Omit::Value,
+        /**
+         * An own sales invoice: the number of the contract with the buyer, one line, at most 100 characters.
+         */
+        public readonly string|Omit|null $contract_number = Omit::Value,
+        /**
+         * An own sales invoice: the reference the buyer asks for, one line, at most 20 characters.
+         */
+        public readonly string|Omit|null $buyer_reference = Omit::Value,
+        /**
          * An own sales invoice: the unit prices, discounts and charges of the item lines include VAT. The books compute the net and the VAT of each line, so the total is the sum of the gross amounts. Every line is an `item` without `net_minor` or `tax_minor`. Default false.
          */
         public readonly bool|Omit $prices_include_vat = Omit::Value,
@@ -71,6 +88,10 @@ final class InvoiceRevisionRequest extends JsonModel
          */
         public readonly KycLanguageEnum|string|Omit|null $language = Omit::Value,
         public readonly array|Omit $documents = Omit::Value,
+        /**
+         * An own sales invoice: the bank accounts it prints, in order (at most 20); the first is the payment account of the e-invoice. Each must be an active account of the company with an IBAN, not a debtor, named once (400 `invoice_bank_account_invalid`). Null uses the company default, else every active account in the invoice currency. On `revise_invoice` a missing field keeps the choice of the previous revision and null clears it. A purchase invoice refuses it.
+         */
+        public readonly array|Omit|null $bank_account_ids = Omit::Value,
     ) {}
 
     /**
@@ -101,10 +122,15 @@ final class InvoiceRevisionRequest extends JsonModel
             received_date: Decode::omittable($data, 'received_date', $path, Decode::nullable(Decode::string(...))),
             base_tax_minor: Decode::omittable($data, 'base_tax_minor', $path, Decode::nullable(Decode::int(...))),
             customer_note: Decode::omittable($data, 'customer_note', $path, Decode::nullable(Decode::string(...))),
+            buyer_contact_name: Decode::omittable($data, 'buyer_contact_name', $path, Decode::nullable(Decode::string(...))),
+            order_number: Decode::omittable($data, 'order_number', $path, Decode::nullable(Decode::string(...))),
+            contract_number: Decode::omittable($data, 'contract_number', $path, Decode::nullable(Decode::string(...))),
+            buyer_reference: Decode::omittable($data, 'buyer_reference', $path, Decode::nullable(Decode::string(...))),
             prices_include_vat: Decode::omittable($data, 'prices_include_vat', $path, Decode::bool(...)),
             language: Decode::omittable($data, 'language', $path, Decode::nullable(Decode::enum(KycLanguageEnum::class))),
             lines: Decode::required($data, 'lines', $path, Decode::listOf(InvoiceLineRequest::fromJson(...))),
             documents: Decode::omittable($data, 'documents', $path, Decode::listOf(InvoiceDocumentRequest::fromJson(...))),
+            bank_account_ids: Decode::omittable($data, 'bank_account_ids', $path, Decode::nullable(Decode::listOf(Decode::string(...)))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -133,10 +159,15 @@ final class InvoiceRevisionRequest extends JsonModel
             'received_date' => $this->received_date,
             'base_tax_minor' => $this->base_tax_minor,
             'customer_note' => $this->customer_note,
+            'buyer_contact_name' => $this->buyer_contact_name,
+            'order_number' => $this->order_number,
+            'contract_number' => $this->contract_number,
+            'buyer_reference' => $this->buyer_reference,
             'prices_include_vat' => $this->prices_include_vat,
             'language' => Encode::enum($this->language),
             'lines' => Encode::list($this->lines, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'documents' => Encode::list($this->documents, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'bank_account_ids' => $this->bank_account_ids,
         ]);
     }
 }

@@ -21,9 +21,9 @@ final class MeResource
     ) {}
 
     /**
-     * Return the caller. A staff session that sees organizations without a membership is audited.
+     * Return the caller. A staff session that sees companies without a membership is audited.
      *
-     * So is every read by a staff key, which sees every organization.
+     * So is every read by a staff key, which sees every company.
      *
      * `GET /api/me/`
      */

@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksInvoiceDocument extends JsonModel
 {
-    private const FIELDS = ['document_id', 'role', 'filename', 'kind'];
+    private const FIELDS = ['document_id', 'role', 'filename', 'kind', 'file_id', 'download_url', 'source'];
 
     public function __construct(
         public readonly string $document_id,
@@ -26,6 +26,18 @@ final class BooksInvoiceDocument extends JsonModel
         public readonly string $role,
         public readonly string $filename,
         public readonly BooksDocumentKindEnum|string $kind,
+        /**
+         * The sqid of the stored file (`files/{file_id}/`), or null when none is stored.
+         */
+        public readonly ?string $file_id,
+        /**
+         * The API path that gives a short-lived URL of the bytes (`files/{file_id}/download/`), or null.
+         */
+        public readonly ?string $download_url,
+        /**
+         * Where the stored file came from: `email` (the invoice inbox), `upload` (a person), `api` (an API key or an app connected through OAuth), `import` (a migration or a Stripe import), `generated` (made by Oscar) or `other`. More values may come. Null when no file is stored.
+         */
+        public readonly ?string $source,
     ) {}
 
     /**
@@ -38,6 +50,9 @@ final class BooksInvoiceDocument extends JsonModel
             role: Decode::required($data, 'role', $path, Decode::string(...)),
             filename: Decode::required($data, 'filename', $path, Decode::string(...)),
             kind: Decode::required($data, 'kind', $path, Decode::enum(BooksDocumentKindEnum::class)),
+            file_id: Decode::required($data, 'file_id', $path, Decode::nullable(Decode::string(...))),
+            download_url: Decode::required($data, 'download_url', $path, Decode::nullable(Decode::string(...))),
+            source: Decode::required($data, 'source', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -48,6 +63,9 @@ final class BooksInvoiceDocument extends JsonModel
             'role' => $this->role,
             'filename' => $this->filename,
             'kind' => Encode::enum($this->kind),
+            'file_id' => $this->file_id,
+            'download_url' => $this->download_url,
+            'source' => $this->source,
         ]);
     }
 }

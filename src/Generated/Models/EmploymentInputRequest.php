@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\Omit;
  */
 final class EmploymentInputRequest extends JsonModel
 {
-    private const FIELDS = ['employment_type', 'start_date', 'end_date', 'work_time_rate', 'occupation_code', 'workplace_address_id', 'contract_ref', 'gross_salary_minor', 'board_fee_minor'];
+    private const FIELDS = ['employment_type', 'start_date', 'end_date', 'work_time_rate', 'occupation_code', 'workplace_address_id', 'workplace_address', 'contract_ref', 'gross_salary_minor', 'board_fee_minor'];
 
     public function __construct(
         /**
@@ -33,13 +33,17 @@ final class EmploymentInputRequest extends JsonModel
          */
         public readonly string|Omit $work_time_rate = Omit::Value,
         /**
-         * The occupation code of Statistics Estonia.
+         * The occupation code of Statistics Estonia: a selectable 8-digit code of its occupation classifier, else 400.
          */
         public readonly string|Omit $occupation_code = Omit::Value,
         /**
          * The ADS address id (ADR_ID) of the workplace building.
          */
         public readonly int|Omit $workplace_address_id = Omit::Value,
+        /**
+         * The full address of that building. Kept by OscarAI for the lists; TÖR takes the id only.
+         */
+        public readonly string|Omit $workplace_address = Omit::Value,
         public readonly string|Omit $contract_ref = Omit::Value,
         public readonly int|Omit|null $gross_salary_minor = Omit::Value,
         public readonly int|Omit|null $board_fee_minor = Omit::Value,
@@ -57,6 +61,7 @@ final class EmploymentInputRequest extends JsonModel
             work_time_rate: Decode::omittable($data, 'work_time_rate', $path, Decode::string(...)),
             occupation_code: Decode::omittable($data, 'occupation_code', $path, Decode::string(...)),
             workplace_address_id: Decode::omittable($data, 'workplace_address_id', $path, Decode::int(...)),
+            workplace_address: Decode::omittable($data, 'workplace_address', $path, Decode::string(...)),
             contract_ref: Decode::omittable($data, 'contract_ref', $path, Decode::string(...)),
             gross_salary_minor: Decode::omittable($data, 'gross_salary_minor', $path, Decode::nullable(Decode::int(...))),
             board_fee_minor: Decode::omittable($data, 'board_fee_minor', $path, Decode::nullable(Decode::int(...))),
@@ -72,6 +77,7 @@ final class EmploymentInputRequest extends JsonModel
             'work_time_rate' => $this->work_time_rate,
             'occupation_code' => $this->occupation_code,
             'workplace_address_id' => $this->workplace_address_id,
+            'workplace_address' => $this->workplace_address,
             'contract_ref' => $this->contract_ref,
             'gross_salary_minor' => $this->gross_salary_minor,
             'board_fee_minor' => $this->board_fee_minor,

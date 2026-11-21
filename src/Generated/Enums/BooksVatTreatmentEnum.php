@@ -18,6 +18,8 @@ namespace OscarAccountant\Generated\Enums;
  * * `rc_non_eu` - rc_non_eu
  * * `foreign_vat` - foreign_vat
  * * `oss` - oss
+ * * `foreign_scheme` - foreign_scheme
+ * * `import` - import
  * * `unknown` - unknown
  *
  * Every enum is open: a field of a model holds a value this client does not know as a string.
@@ -35,5 +37,7 @@ enum BooksVatTreatmentEnum: string
     case RcNonEu = 'rc_non_eu';
     case ForeignVat = 'foreign_vat';
     case Oss = 'oss';
+    case ForeignScheme = 'foreign_scheme';
+    case Import = 'import';
     case Unknown = 'unknown';
 }

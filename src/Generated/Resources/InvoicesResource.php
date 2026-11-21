@@ -12,6 +12,7 @@ use OscarAccountant\Generated\Enums\BooksInvoiceStateEnum;
 use OscarAccountant\Generated\Enums\InvoicesListOrdering;
 use OscarAccountant\Generated\Enums\InvoicesListSettlement;
 use OscarAccountant\Generated\Models\BooksInvoice;
+use OscarAccountant\Generated\Models\BooksInvoiceBankAccounts;
 use OscarAccountant\Generated\Models\BooksInvoiceDetail;
 use OscarAccountant\Generated\Models\BooksInvoicePage;
 use OscarAccountant\Generated\Models\CancelInvoiceBodyRequest;
@@ -21,6 +22,10 @@ use OscarAccountant\Generated\Models\IssueInvoiceOutcome;
 use OscarAccountant\Generated\Models\RecordInvoiceOutcome;
 use OscarAccountant\Generated\Models\RecordInvoicePayloadRequest;
 use OscarAccountant\Generated\Models\ReviseInvoiceBodyRequest;
+use OscarAccountant\Generated\Models\SetDefaultInvoiceBankAccountsOutcome;
+use OscarAccountant\Generated\Models\SetDefaultInvoiceBankAccountsPayloadRequest;
+use OscarAccountant\Generated\Models\SetInvoiceBankAccountsBodyRequest;
+use OscarAccountant\Generated\Models\SetInvoiceBankAccountsOutcome;
 use OscarAccountant\Generated\Runtime\Request;
 use OscarAccountant\Generated\Runtime\Runtime;
 use OscarAccountant\Paginator;
@@ -34,6 +39,43 @@ final class InvoicesResource
     public function __construct(
         private readonly Runtime $runtime,
     ) {}
+
+    /**
+     * Get the bank accounts an invoice prints
+     *
+     * The bank accounts an own sales invoice prints, in print order.
+     *
+     * A draft prints the accounts a person chose for it (`set_invoice_bank_accounts`, `source` `override`), else the
+     * company default (`set_default_invoice_bank_accounts`, `default`), else every active account in the invoice
+     * currency (`automatic`): the issue freezes the same list. An issued invoice answers the accounts it froze
+     * (`snapshot`). `problem` names a chosen account that can no longer print: the issue refuses until the choice
+     * changes. A purchase invoice is 409 `invalid_state`.
+     *
+     * `GET /api/companies/{company_id}/invoices/{invoice_id}/bank-accounts/`
+     */
+    public function bankAccounts(
+        string $companyId,
+        string $invoiceId,
+        ?RequestOptions $options = null,
+    ): BooksInvoiceBankAccounts {
+        return $this->runtime->request(
+            new Request(
+                operationId: 'books_invoices_bank_accounts_retrieve',
+                method: 'GET',
+                path: '/api/companies/{company_id}/invoices/{invoice_id}/bank-accounts/',
+                pathParams: [
+                    'company_id' => $companyId,
+                    'invoice_id' => $invoiceId,
+                ],
+                query: [],
+                body: null,
+                idempotent: false,
+                response: 'json',
+            ),
+            BooksInvoiceBankAccounts::class,
+            $options,
+        );
+    }
 
     /**
      * Cancel an issued sales invoice or a posted purchase invoice: the number is kept and a posted entry is reversed.
@@ -251,6 +293,68 @@ final class InvoicesResource
                 response: 'json',
             ),
             CommandOutcome::class,
+            $options,
+        );
+    }
+
+    /**
+     * Set the bank accounts one draft sales invoice prints, or clear the choice to use the company default.
+     *
+     * Runs the core command `set_invoice_bank_accounts`. Permission: `invoices.issue`. The path carries `invoice_id`.
+     *
+     * `POST /api/companies/{company_id}/invoices/{invoice_id}/bank-accounts`
+     */
+    public function setBankAccounts(
+        string $companyId,
+        string $invoiceId,
+        SetInvoiceBankAccountsBodyRequest $body,
+        ?RequestOptions $options = null,
+    ): SetInvoiceBankAccountsOutcome {
+        return $this->runtime->request(
+            new Request(
+                operationId: 'commands_set_invoice_bank_accounts',
+                method: 'POST',
+                path: '/api/companies/{company_id}/invoices/{invoice_id}/bank-accounts',
+                pathParams: [
+                    'company_id' => $companyId,
+                    'invoice_id' => $invoiceId,
+                ],
+                query: [],
+                body: $body,
+                idempotent: true,
+                response: 'json',
+            ),
+            SetInvoiceBankAccountsOutcome::class,
+            $options,
+        );
+    }
+
+    /**
+     * Set the bank accounts the sales invoices print by default, in order.
+     *
+     * Runs the core command `set_default_invoice_bank_accounts`. Permission: `invoices.issue`.
+     *
+     * `POST /api/companies/{company_id}/invoice-bank-accounts`
+     */
+    public function setDefaultBankAccounts(
+        string $companyId,
+        SetDefaultInvoiceBankAccountsPayloadRequest $body,
+        ?RequestOptions $options = null,
+    ): SetDefaultInvoiceBankAccountsOutcome {
+        return $this->runtime->request(
+            new Request(
+                operationId: 'commands_set_default_invoice_bank_accounts',
+                method: 'POST',
+                path: '/api/companies/{company_id}/invoice-bank-accounts',
+                pathParams: [
+                    'company_id' => $companyId,
+                ],
+                query: [],
+                body: $body,
+                idempotent: true,
+                response: 'json',
+            ),
+            SetDefaultInvoiceBankAccountsOutcome::class,
             $options,
         );
     }

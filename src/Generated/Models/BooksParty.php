@@ -7,6 +7,7 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Models;
 
 use OscarAccountant\Generated\Enums\BooksPartyKindEnum;
+use OscarAccountant\Generated\Enums\PartyRoleEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -16,8 +17,11 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksParty extends JsonModel
 {
-    private const FIELDS = ['id', 'name', 'name_key', 'kind', 'country', 'vat_area', 'vat_area_source', 'vat_number', 'vies_checked_at', 'reg_code', 'expects_document', 'is_confirmed', 'merged_into_id', 'notes', 'created_at', 'external_key', 'private_persons', 'address', 'email', 'phone'];
+    private const FIELDS = ['id', 'name', 'name_key', 'kind', 'country', 'vat_area', 'vat_area_source', 'vat_number', 'vies_checked_at', 'reg_code', 'expects_document', 'is_confirmed', 'merged_into_id', 'notes', 'created_at', 'external_key', 'private_persons', 'address', 'email', 'phone', 'roles'];
 
+    /**
+     * @param list<(PartyRoleEnum|string)> $roles
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $name,
@@ -63,6 +67,10 @@ final class BooksParty extends JsonModel
          * The phone number of the party.
          */
         public readonly ?string $phone,
+        /**
+         * What the party is to the company: `supplier` when its kind is supplier or it has a purchase invoice (or an open purchase draft), `customer` when its kind is customer or it has a sales invoice. Void invoices do not count. Empty for a party of another kind with no invoice.
+         */
+        public readonly array $roles,
     ) {}
 
     /**
@@ -91,6 +99,7 @@ final class BooksParty extends JsonModel
             address: Decode::required($data, 'address', $path, Decode::nullable(Decode::string(...))),
             email: Decode::required($data, 'email', $path, Decode::nullable(Decode::string(...))),
             phone: Decode::required($data, 'phone', $path, Decode::nullable(Decode::string(...))),
+            roles: Decode::required($data, 'roles', $path, Decode::listOf(Decode::enum(PartyRoleEnum::class))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -117,6 +126,7 @@ final class BooksParty extends JsonModel
             'address' => $this->address,
             'email' => $this->email,
             'phone' => $this->phone,
+            'roles' => Encode::list($this->roles, static fn(mixed $item): mixed => Encode::enum($item)),
         ]);
     }
 }

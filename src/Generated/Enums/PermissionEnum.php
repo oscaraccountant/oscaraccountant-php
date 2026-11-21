@@ -7,14 +7,14 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Enums;
 
 /**
- * * `organization.read` - organization.read
+ * * `companies.read` - companies.read
  * * `members.read` - members.read
  * * `api_keys.read` - api_keys.read
  * * `audit.read` - audit.read
  * * `books.read` - books.read
  * * `documents.read` - documents.read
  * * `payments.read` - payments.read
- * * `organization.manage` - organization.manage
+ * * `companies.manage` - companies.manage
  * * `members.manage` - members.manage
  * * `api_keys.manage` - api_keys.manage
  * * `companies.create` - companies.create
@@ -29,27 +29,31 @@ namespace OscarAccountant\Generated\Enums;
  * * `invoices.post_purchase` - invoices.post_purchase
  * * `invoices.void` - invoices.void
  * * `allocations.write` - allocations.write
+ * * `reconciliation.decide` - reconciliation.decide
  * * `events.write` - events.write
  * * `periods.close` - periods.close
  * * `periods.reopen` - periods.reopen
  * * `vat.prepare` - vat.prepare
  * * `vat.file` - vat.file
  * * `payments.manage` - payments.manage
+ * * `einvoicing.manage` - einvoicing.manage
  * * `employees.submit` - employees.submit
+ * * `foreign_tax.file` - foreign_tax.file
  * * `agent.use` - agent.use
+ * * `support.use` - support.use
  *
  * Every enum is open: a field of a model holds a value this client does not know as a string.
  */
 enum PermissionEnum: string
 {
-    case OrganizationRead = 'organization.read';
+    case CompaniesRead = 'companies.read';
     case MembersRead = 'members.read';
     case ApiKeysRead = 'api_keys.read';
     case AuditRead = 'audit.read';
     case BooksRead = 'books.read';
     case DocumentsRead = 'documents.read';
     case PaymentsRead = 'payments.read';
-    case OrganizationManage = 'organization.manage';
+    case CompaniesManage = 'companies.manage';
     case MembersManage = 'members.manage';
     case ApiKeysManage = 'api_keys.manage';
     case CompaniesCreate = 'companies.create';
@@ -64,12 +68,16 @@ enum PermissionEnum: string
     case InvoicesPostPurchase = 'invoices.post_purchase';
     case InvoicesVoid = 'invoices.void';
     case AllocationsWrite = 'allocations.write';
+    case ReconciliationDecide = 'reconciliation.decide';
     case EventsWrite = 'events.write';
     case PeriodsClose = 'periods.close';
     case PeriodsReopen = 'periods.reopen';
     case VatPrepare = 'vat.prepare';
     case VatFile = 'vat.file';
     case PaymentsManage = 'payments.manage';
+    case EinvoicingManage = 'einvoicing.manage';
     case EmployeesSubmit = 'employees.submit';
+    case ForeignTaxFile = 'foreign_tax.file';
     case AgentUse = 'agent.use';
+    case SupportUse = 'support.use';
 }

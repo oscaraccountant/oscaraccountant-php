@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\Omit;
  */
 final class IssueInvoiceBodyRequest extends JsonModel
 {
-    private const FIELDS = ['number', 'seller_snapshot', 'buyer_snapshot', 'seller_address'];
+    private const FIELDS = ['number', 'seller_snapshot', 'buyer_snapshot', 'seller_address', 'buyer_contact_name', 'order_number', 'contract_number', 'buyer_reference'];
 
     public function __construct(
         /**
@@ -29,6 +29,22 @@ final class IssueInvoiceBodyRequest extends JsonModel
          * The seller's postal address frozen into the seller snapshot. Without it the API takes the company's address from the Business Register. A VAT-registered company issues no invoice without the seller's and the buyer's address: 400 `seller_address_missing` or `buyer_address_missing` (EE-VAT-020).
          */
         public readonly string|Omit|null $seller_address = Omit::Value,
+        /**
+         * An own sales invoice: the buyer's contact person, one line, at most 100 characters. A value here replaces the one of the draft; none keeps it.
+         */
+        public readonly string|Omit|null $buyer_contact_name = Omit::Value,
+        /**
+         * An own sales invoice: the number of the buyer's order, one line, at most 100 characters. A value here replaces the one of the draft; none keeps it.
+         */
+        public readonly string|Omit|null $order_number = Omit::Value,
+        /**
+         * An own sales invoice: the number of the contract with the buyer, one line, at most 100 characters. A value here replaces the one of the draft; none keeps it.
+         */
+        public readonly string|Omit|null $contract_number = Omit::Value,
+        /**
+         * An own sales invoice: the reference the buyer asks for, one line, at most 20 characters. A value here replaces the one of the draft; none keeps it.
+         */
+        public readonly string|Omit|null $buyer_reference = Omit::Value,
     ) {}
 
     /**
@@ -41,6 +57,10 @@ final class IssueInvoiceBodyRequest extends JsonModel
             seller_snapshot: Decode::omittable($data, 'seller_snapshot', $path, Decode::json(...)),
             buyer_snapshot: Decode::omittable($data, 'buyer_snapshot', $path, Decode::json(...)),
             seller_address: Decode::omittable($data, 'seller_address', $path, Decode::nullable(Decode::string(...))),
+            buyer_contact_name: Decode::omittable($data, 'buyer_contact_name', $path, Decode::nullable(Decode::string(...))),
+            order_number: Decode::omittable($data, 'order_number', $path, Decode::nullable(Decode::string(...))),
+            contract_number: Decode::omittable($data, 'contract_number', $path, Decode::nullable(Decode::string(...))),
+            buyer_reference: Decode::omittable($data, 'buyer_reference', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -51,6 +71,10 @@ final class IssueInvoiceBodyRequest extends JsonModel
             'seller_snapshot' => $this->seller_snapshot,
             'buyer_snapshot' => $this->buyer_snapshot,
             'seller_address' => $this->seller_address,
+            'buyer_contact_name' => $this->buyer_contact_name,
+            'order_number' => $this->order_number,
+            'contract_number' => $this->contract_number,
+            'buyer_reference' => $this->buyer_reference,
         ]);
     }
 }

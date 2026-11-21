@@ -34,6 +34,9 @@ final class BooksLedgerLine extends JsonModel
          */
         public readonly int $amount_minor,
         public readonly int $base_minor,
+        /**
+         * The balance of the account after this line. It counts the lines of the correction pairs too, so it can jump across a line `include_corrections=false` leaves out.
+         */
         public readonly int $running_base_minor,
         public readonly ?string $memo,
     ) {}

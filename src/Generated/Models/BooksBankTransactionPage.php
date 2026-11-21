@@ -12,13 +12,14 @@ use OscarAccountant\Generated\Runtime\JsonModel;
 use OscarAccountant\Generated\Runtime\Page;
 
 /**
- * One page of BooksBankTransaction items, and the cursor of the next page.
+ * One page of BooksBankTransaction items, the cursor of the next page, and the coverage of the payments to
+ * explain.
  *
  * @implements Page<BooksBankTransaction>
  */
 final class BooksBankTransactionPage extends JsonModel implements Page
 {
-    private const FIELDS = ['items', 'next_cursor'];
+    private const FIELDS = ['items', 'next_cursor', 'coverage'];
 
     /**
      * @param list<BooksBankTransaction> $items
@@ -29,6 +30,10 @@ final class BooksBankTransactionPage extends JsonModel implements Page
          * Send it back as `cursor` for the next page; null on the last page.
          */
         public readonly ?string $next_cursor,
+        /**
+         * With `to_explain=true` or `receipt_state`: the bank accounts and months the answer checked (the same on every page). Null otherwise.
+         */
+        public readonly ?BooksBankCoverage $coverage,
     ) {}
 
     /**
@@ -39,6 +44,7 @@ final class BooksBankTransactionPage extends JsonModel implements Page
         return (new static(
             items: Decode::required($data, 'items', $path, Decode::listOf(BooksBankTransaction::fromJson(...))),
             next_cursor: Decode::required($data, 'next_cursor', $path, Decode::nullable(Decode::string(...))),
+            coverage: Decode::required($data, 'coverage', $path, Decode::nullable(BooksBankCoverage::fromJson(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -47,6 +53,7 @@ final class BooksBankTransactionPage extends JsonModel implements Page
         return Encode::fields([
             'items' => Encode::list($this->items, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'next_cursor' => $this->next_cursor,
+            'coverage' => Encode::model($this->coverage, $json),
         ]);
     }
 

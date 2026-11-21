@@ -20,7 +20,6 @@ use OscarAccountant\Generated\Resources\InboxResource;
 use OscarAccountant\Generated\Resources\InvoicesResource;
 use OscarAccountant\Generated\Resources\MeResource;
 use OscarAccountant\Generated\Resources\OpenItemsResource;
-use OscarAccountant\Generated\Resources\OrganizationsResource;
 use OscarAccountant\Generated\Resources\PartiesResource;
 use OscarAccountant\Generated\Resources\PayRunsResource;
 use OscarAccountant\Generated\Resources\PeriodsResource;
@@ -109,11 +108,6 @@ abstract class GeneratedClient implements Runtime
     public readonly OpenItemsResource $openItems;
 
     /**
-     * The `organizations` operations.
-     */
-    public readonly OrganizationsResource $organizations;
-
-    /**
      * The `parties` operations.
      */
     public readonly PartiesResource $parties;
@@ -169,7 +163,6 @@ abstract class GeneratedClient implements Runtime
         $this->invoices = new InvoicesResource($this);
         $this->me = new MeResource($this);
         $this->openItems = new OpenItemsResource($this);
-        $this->organizations = new OrganizationsResource($this);
         $this->parties = new PartiesResource($this);
         $this->payRuns = new PayRunsResource($this);
         $this->periods = new PeriodsResource($this);

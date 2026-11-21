@@ -15,7 +15,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class MeFeatures extends JsonModel
 {
-    private const FIELDS = ['agent', 'inbox', 'employees'];
+    private const FIELDS = ['agent', 'inbox', 'employees', 'payroll', 'kmd_submission', 'foreign_tax_gb', 'foreign_tax_au', 'lightyear'];
 
     public function __construct(
         /**
@@ -30,6 +30,26 @@ final class MeFeatures extends JsonModel
          * The employee register and its sync with TÖR. Off, its endpoints answer 409 employees_disabled.
          */
         public readonly bool $employees,
+        /**
+         * Payroll and the payroll tax returns (TSD). Off, their endpoints answer 409 payroll_disabled.
+         */
+        public readonly ?bool $payroll = null,
+        /**
+         * The VAT return (KMD) is sent to the tax authority over X-tee. Off, the KMD submit answers 503 kmd_submission_disabled: download the file and upload it in e-MTA.
+         */
+        public readonly ?bool $kmd_submission = null,
+        /**
+         * UK VAT: the registration of the scheme `gb_vat` and the UK VAT returns. Off, the registration and the `foreign-tax/gb-vat/` endpoints answer 409 foreign_tax_disabled.
+         */
+        public readonly ?bool $foreign_tax_gb = null,
+        /**
+         * Australian GST: the registration of the scheme `au_gst`, its returns and `au-gst-threshold/`. Off, they answer 409 foreign_tax_disabled.
+         */
+        public readonly ?bool $foreign_tax_au = null,
+        /**
+         * The Investments screen: the Lightyear account statement upload, the positions and the year-end valuation. Off, every `investments/` endpoint answers 404.
+         */
+        public readonly ?bool $lightyear = null,
     ) {}
 
     /**
@@ -41,6 +61,11 @@ final class MeFeatures extends JsonModel
             agent: Decode::required($data, 'agent', $path, Decode::bool(...)),
             inbox: Decode::required($data, 'inbox', $path, Decode::bool(...)),
             employees: Decode::required($data, 'employees', $path, Decode::bool(...)),
+            payroll: Decode::optional($data, 'payroll', $path, Decode::bool(...)),
+            kmd_submission: Decode::optional($data, 'kmd_submission', $path, Decode::bool(...)),
+            foreign_tax_gb: Decode::optional($data, 'foreign_tax_gb', $path, Decode::bool(...)),
+            foreign_tax_au: Decode::optional($data, 'foreign_tax_au', $path, Decode::bool(...)),
+            lightyear: Decode::optional($data, 'lightyear', $path, Decode::bool(...)),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -50,6 +75,11 @@ final class MeFeatures extends JsonModel
             'agent' => $this->agent,
             'inbox' => $this->inbox,
             'employees' => $this->employees,
+            'payroll' => $this->payroll,
+            'kmd_submission' => $this->kmd_submission,
+            'foreign_tax_gb' => $this->foreign_tax_gb,
+            'foreign_tax_au' => $this->foreign_tax_au,
+            'lightyear' => $this->lightyear,
         ]);
     }
 }

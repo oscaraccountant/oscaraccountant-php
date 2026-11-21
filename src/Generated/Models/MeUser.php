@@ -26,7 +26,7 @@ final class MeUser extends JsonModel
         public readonly string $email,
         public readonly string $name,
         /**
-         * Firm staff: sees every organization as owner.
+         * Firm staff: sees every company as owner.
          */
         public readonly bool $is_staff,
         /**

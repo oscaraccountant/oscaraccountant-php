@@ -15,12 +15,12 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class CompanyStatus extends JsonModel
 {
-    private const FIELDS = ['bank_lines_to_classify', 'payments_to_explain', 'documents_to_book', 'pending_proposals', 'open_periods', 'vat_returns_due', 'next_vat_due_date', 'last_bank_import_at', 'overdue_receivables', 'overdue_receivables_minor', 'refreshed_at', 'refresh_error'];
+    private const FIELDS = ['bank_lines_to_classify', 'payments_to_explain', 'documents_to_book', 'pending_proposals', 'open_periods', 'vat_returns_due', 'next_vat_due_date', 'vat_months_not_checked', 'vat_not_checked_from', 'vat_not_checked_to', 'last_bank_import_at', 'overdue_receivables', 'overdue_receivables_minor', 'refreshed_at', 'refresh_error'];
 
     public function __construct(
         public readonly int $bank_lines_to_classify,
         /**
-         * Money out still open that no uploaded file explains.
+         * Money out still open that no file of a matched invoice explains: the payments of `bank-transactions/?to_explain=true`, each with its `receipt_state` (missing, a receipt not booked yet, or an invoice booked and not matched).
          */
         public readonly int $payments_to_explain,
         /**
@@ -29,11 +29,26 @@ final class CompanyStatus extends JsonModel
         public readonly int $documents_to_book,
         public readonly int $pending_proposals,
         public readonly int $open_periods,
+        /**
+         * The VAT returns not filed from the takeover on: a return due on or before the day Oscar took over the books is the previous accountant's and is not counted.
+         */
         public readonly int $vat_returns_due,
         /**
-         * The due date of the next VAT return (KMD): the 20th of a month.
+         * The due date of the next VAT return (KMD) from the takeover on: the 20th of the next month, moved to the next working day after a weekend or a public holiday.
          */
         public readonly ?string $next_vat_due_date,
+        /**
+         * The VAT months before the takeover with no record of a filed return ("not checked"): never due, never overdue.
+         */
+        public readonly int $vat_months_not_checked,
+        /**
+         * The first day of the first month not checked; null when none.
+         */
+        public readonly ?string $vat_not_checked_from,
+        /**
+         * The first day of the last month not checked; null when none.
+         */
+        public readonly ?string $vat_not_checked_to,
         public readonly ?string $last_bank_import_at,
         public readonly int $overdue_receivables,
         /**
@@ -60,6 +75,9 @@ final class CompanyStatus extends JsonModel
             open_periods: Decode::required($data, 'open_periods', $path, Decode::int(...)),
             vat_returns_due: Decode::required($data, 'vat_returns_due', $path, Decode::int(...)),
             next_vat_due_date: Decode::required($data, 'next_vat_due_date', $path, Decode::nullable(Decode::string(...))),
+            vat_months_not_checked: Decode::required($data, 'vat_months_not_checked', $path, Decode::int(...)),
+            vat_not_checked_from: Decode::required($data, 'vat_not_checked_from', $path, Decode::nullable(Decode::string(...))),
+            vat_not_checked_to: Decode::required($data, 'vat_not_checked_to', $path, Decode::nullable(Decode::string(...))),
             last_bank_import_at: Decode::required($data, 'last_bank_import_at', $path, Decode::nullable(Decode::string(...))),
             overdue_receivables: Decode::required($data, 'overdue_receivables', $path, Decode::int(...)),
             overdue_receivables_minor: Decode::required($data, 'overdue_receivables_minor', $path, Decode::int(...)),
@@ -78,6 +96,9 @@ final class CompanyStatus extends JsonModel
             'open_periods' => $this->open_periods,
             'vat_returns_due' => $this->vat_returns_due,
             'next_vat_due_date' => $this->next_vat_due_date,
+            'vat_months_not_checked' => $this->vat_months_not_checked,
+            'vat_not_checked_from' => $this->vat_not_checked_from,
+            'vat_not_checked_to' => $this->vat_not_checked_to,
             'last_bank_import_at' => $this->last_bank_import_at,
             'overdue_receivables' => $this->overdue_receivables,
             'overdue_receivables_minor' => $this->overdue_receivables_minor,

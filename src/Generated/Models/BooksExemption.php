@@ -16,10 +16,72 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksExemption extends JsonModel
 {
-    private const FIELDS = ['counter_role', 'reason', 'created_at'];
+    private const FIELDS = ['counter_role', 'counter_account_code', 'reason', 'created_at'];
 
     public function __construct(
-        public readonly BooksExemptionRoleEnum|string $counter_role,
+        /**
+         * The account role the payment is booked to, or null.
+         *
+         * * `transfer_transit` - transfer_transit
+         * * `supplier_prepayment` - supplier_prepayment
+         * * `customer_prepayment` - customer_prepayment
+         * * `vat_input` - vat_input
+         * * `vat_input_rc` - vat_input_rc
+         * * `vat_output` - vat_output
+         * * `vat_output_rc` - vat_output_rc
+         * * `vat_payable` - vat_payable
+         * * `vat_non_deductible` - vat_non_deductible
+         * * `tax_receivable` - tax_receivable
+         * * `expense_default` - expense_default
+         * * `software_expense` - software_expense
+         * * `hosting_expense` - hosting_expense
+         * * `prof_fees` - prof_fees
+         * * `travel_expense` - travel_expense
+         * * `bank_charges` - bank_charges
+         * * `income_default` - income_default
+         * * `interest_income` - interest_income
+         * * `interest_expense` - interest_expense
+         * * `fx_gain` - fx_gain
+         * * `fx_loss` - fx_loss
+         * * `rounding` - rounding
+         * * `payroll_expense` - payroll_expense
+         * * `payroll_liability` - payroll_liability
+         * * `payroll_tax` - payroll_tax
+         * * `grant_liability` - grant_liability
+         * * `grant_income` - grant_income
+         * * `loan_payable` - loan_payable
+         * * `loan_receivable` - loan_receivable
+         * * `owner_capital` - owner_capital
+         * * `owner_drawings` - owner_drawings
+         * * `accrued_expense` - accrued_expense
+         * * `prepaid_expense` - prepaid_expense
+         * * `deferred_income` - deferred_income
+         * * `opening_balance` - opening_balance
+         * * `retained_earnings` - retained_earnings
+         * * `current_year_result` - current_year_result
+         * * `discount_received` - discount_received
+         * * `discount_allowed` - discount_allowed
+         * * `writeoff` - writeoff
+         * * `bad_debt` - bad_debt
+         * * `dividend_payable` - dividend_payable
+         * * `distribution_tax_expense` - distribution_tax_expense
+         * * `distribution_tax_liability` - distribution_tax_liability
+         * * `share_capital` - share_capital
+         * * `legal_reserve` - legal_reserve
+         * * `vat_output_oss` - vat_output_oss
+         * * `vat_output_ioss` - vat_output_ioss
+         * * `vat_output_gb` - vat_output_gb
+         * * `vat_input_gb` - vat_input_gb
+         * * `vat_output_au` - vat_output_au
+         * * `vat_output_import` - vat_output_import
+         * * `vat_input_import` - vat_input_import
+         * * `vat_input_fixed_asset` - vat_input_fixed_asset
+         */
+        public readonly BooksExemptionRoleEnum|string|null $counter_role,
+        /**
+         * The code of the account the payment is booked to, when the exemption names an account and no role.
+         */
+        public readonly ?string $counter_account_code,
         public readonly string $reason,
         public readonly string $created_at,
     ) {}
@@ -30,7 +92,8 @@ final class BooksExemption extends JsonModel
     public static function fromArray(array $data, string $path = '$'): static
     {
         return (new static(
-            counter_role: Decode::required($data, 'counter_role', $path, Decode::enum(BooksExemptionRoleEnum::class)),
+            counter_role: Decode::required($data, 'counter_role', $path, Decode::nullable(Decode::enum(BooksExemptionRoleEnum::class))),
+            counter_account_code: Decode::required($data, 'counter_account_code', $path, Decode::nullable(Decode::string(...))),
             reason: Decode::required($data, 'reason', $path, Decode::string(...)),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
         ))->withExtra($data, self::FIELDS);
@@ -40,6 +103,7 @@ final class BooksExemption extends JsonModel
     {
         return Encode::fields([
             'counter_role' => Encode::enum($this->counter_role),
+            'counter_account_code' => $this->counter_account_code,
             'reason' => $this->reason,
             'created_at' => $this->created_at,
         ]);

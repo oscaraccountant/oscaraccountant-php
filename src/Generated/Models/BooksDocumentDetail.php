@@ -7,6 +7,8 @@ declare(strict_types=1);
 namespace OscarAccountant\Generated\Models;
 
 use OscarAccountant\Generated\Enums\BooksDocumentKindEnum;
+use OscarAccountant\Generated\Enums\WithdrawableEnum;
+use OscarAccountant\Generated\Enums\WithdrawBlockedByEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -16,13 +18,15 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksDocumentDetail extends JsonModel
 {
-    private const FIELDS = ['id', 'sha256', 'legacy_sha1', 'kind', 'filename', 'media_type', 'size_bytes', 'storage_ref', 'received_on', 'retention_until', 'legal_hold', 'created_at', 'referenced', 'file_id', 'download_url', 'invoices', 'bank_statements', 'accounting_events', 'vat_returns'];
+    private const FIELDS = ['id', 'sha256', 'legacy_sha1', 'kind', 'filename', 'media_type', 'size_bytes', 'storage_ref', 'received_on', 'retention_until', 'legal_hold', 'created_at', 'referenced', 'withdrawn', 'withdrawn_at', 'file_id', 'stored_filename', 'download_url', 'invoices', 'bank_statements', 'accounting_events', 'vat_returns', 'references', 'withdrawable', 'withdraw_blocked_by', 'status_events', 'deletion'];
 
     /**
      * @param list<BooksDocumentInvoice> $invoices
      * @param list<BooksDocumentStatement> $bank_statements
      * @param list<BooksDocumentEvent> $accounting_events
      * @param list<BooksDocumentVatReturn> $vat_returns
+     * @param list<BooksDocumentReference> $references
+     * @param list<BooksDocumentStatusEvent> $status_events
      */
     public function __construct(
         public readonly string $id,
@@ -41,13 +45,22 @@ final class BooksDocumentDetail extends JsonModel
         public readonly bool $legal_hold,
         public readonly string $created_at,
         /**
-         * True when the books refer to the document (an invoice, a statement, an event, a return).
+         * True when any record of the books refers to the document: an invoice, a statement, an event, a VAT return, an exchange rate, the dividend facts, a registration or a valuation.
          */
         public readonly bool $referenced,
+        /**
+         * True when the file was deleted: the books keep the record, and nothing links it again.
+         */
+        public readonly bool $withdrawn,
+        public readonly ?string $withdrawn_at,
         /**
          * The sqid of the stored file (`files/{file_id}/`), or null when none is stored.
          */
         public readonly ?string $file_id,
+        /**
+         * The name of the stored file now, or null when none is stored or it was deleted. A file uploaded again after its deletion has the name of that upload, while `filename` keeps the first one.
+         */
+        public readonly ?string $stored_filename,
         /**
          * The API path that gives a short-lived URL of the bytes (`files/{file_id}/download/`), or null.
          */
@@ -56,6 +69,34 @@ final class BooksDocumentDetail extends JsonModel
         public readonly array $bank_statements,
         public readonly array $accounting_events,
         public readonly array $vat_returns,
+        /**
+         * Every record of the books that refers to the document.
+         */
+        public readonly array $references,
+        /**
+         * Who may withdraw the document from the books now: any caller, a person with a reason, or nobody.
+         *
+         * * `any` - any
+         * * `human_with_reason` - human_with_reason
+         * * `no` - no
+         */
+        public readonly WithdrawableEnum|string $withdrawable,
+        /**
+         * What stops the withdrawal, or null.
+         *
+         * * `document_withdrawn` - document_withdrawn
+         * * `document_legal_hold` - document_legal_hold
+         * * `document_in_use` - document_in_use
+         */
+        public readonly WithdrawBlockedByEnum|string|null $withdraw_blocked_by,
+        /**
+         * The withdrawals and reinstatements of the document, oldest first.
+         */
+        public readonly array $status_events,
+        /**
+         * Whether the stored file can be deleted now (`POST files/{file_id}/delete/`), and what stops it; null when no file is stored.
+         */
+        public readonly ?Deletion $deletion,
     ) {}
 
     /**
@@ -77,12 +118,20 @@ final class BooksDocumentDetail extends JsonModel
             legal_hold: Decode::required($data, 'legal_hold', $path, Decode::bool(...)),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             referenced: Decode::required($data, 'referenced', $path, Decode::bool(...)),
+            withdrawn: Decode::required($data, 'withdrawn', $path, Decode::bool(...)),
+            withdrawn_at: Decode::required($data, 'withdrawn_at', $path, Decode::nullable(Decode::string(...))),
             file_id: Decode::required($data, 'file_id', $path, Decode::nullable(Decode::string(...))),
+            stored_filename: Decode::required($data, 'stored_filename', $path, Decode::nullable(Decode::string(...))),
             download_url: Decode::required($data, 'download_url', $path, Decode::nullable(Decode::string(...))),
             invoices: Decode::required($data, 'invoices', $path, Decode::listOf(BooksDocumentInvoice::fromJson(...))),
             bank_statements: Decode::required($data, 'bank_statements', $path, Decode::listOf(BooksDocumentStatement::fromJson(...))),
             accounting_events: Decode::required($data, 'accounting_events', $path, Decode::listOf(BooksDocumentEvent::fromJson(...))),
             vat_returns: Decode::required($data, 'vat_returns', $path, Decode::listOf(BooksDocumentVatReturn::fromJson(...))),
+            references: Decode::required($data, 'references', $path, Decode::listOf(BooksDocumentReference::fromJson(...))),
+            withdrawable: Decode::required($data, 'withdrawable', $path, Decode::enum(WithdrawableEnum::class)),
+            withdraw_blocked_by: Decode::required($data, 'withdraw_blocked_by', $path, Decode::nullable(Decode::enum(WithdrawBlockedByEnum::class))),
+            status_events: Decode::required($data, 'status_events', $path, Decode::listOf(BooksDocumentStatusEvent::fromJson(...))),
+            deletion: Decode::required($data, 'deletion', $path, Decode::nullable(Deletion::fromJson(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -102,12 +151,20 @@ final class BooksDocumentDetail extends JsonModel
             'legal_hold' => $this->legal_hold,
             'created_at' => $this->created_at,
             'referenced' => $this->referenced,
+            'withdrawn' => $this->withdrawn,
+            'withdrawn_at' => $this->withdrawn_at,
             'file_id' => $this->file_id,
+            'stored_filename' => $this->stored_filename,
             'download_url' => $this->download_url,
             'invoices' => Encode::list($this->invoices, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'bank_statements' => Encode::list($this->bank_statements, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'accounting_events' => Encode::list($this->accounting_events, static fn(mixed $item): mixed => Encode::model($item, $json)),
             'vat_returns' => Encode::list($this->vat_returns, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'references' => Encode::list($this->references, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'withdrawable' => Encode::enum($this->withdrawable),
+            'withdraw_blocked_by' => Encode::enum($this->withdraw_blocked_by),
+            'status_events' => Encode::list($this->status_events, static fn(mixed $item): mixed => Encode::model($item, $json)),
+            'deletion' => Encode::model($this->deletion, $json),
         ]);
     }
 }

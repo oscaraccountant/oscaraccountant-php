@@ -86,6 +86,8 @@ final class DocumentsResource
      *
      * One document record with the invoices, statements, events and VAT returns that refer to it.
      *
+     * `deletion` says whether the stored file can be deleted now, and what stops it (null without a stored file).
+     *
      * `GET /api/companies/{company_id}/documents/{document_id}/`
      */
     public function retrieve(

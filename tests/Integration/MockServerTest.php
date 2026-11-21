@@ -17,9 +17,14 @@ use OscarAccountant\Errors\RateLimitError;
 use OscarAccountant\Errors\TimeoutError;
 use OscarAccountant\Generated\Models\CancelInvoiceBodyRequest;
 use OscarAccountant\Generated\Models\CreatePartyPayloadRequest;
+use OscarAccountant\Generated\Models\FileDeleteRequest;
 use OscarAccountant\Generated\Models\IssueInvoiceBodyRequest;
+use OscarAccountant\Generated\Models\PatchedPartyUpdateRequest;
 use OscarAccountant\Generated\Models\RecordInvoicePayloadRequest;
 use OscarAccountant\Generated\Models\ReviseInvoiceBodyRequest;
+use OscarAccountant\Generated\Models\SetDefaultInvoiceBankAccountsPayloadRequest;
+use OscarAccountant\Generated\Models\SetInvoiceBankAccountsBodyRequest;
+use OscarAccountant\Generated\Models\SetPartyAddressBodyRequest;
 use OscarAccountant\Generated\Models\SubmissionRequestRequest;
 use OscarAccountant\Internal\Hooks;
 use OscarAccountant\Oscar;
@@ -41,6 +46,7 @@ final class MockServerTest extends TestCase
     private const PARTY = '01J90000000000000000000179';
     private const DOCUMENT = '01J90000000000000000000096';
     private const BANK_TRANSACTION = '01J90000000000000000000029';
+    private const BANK_ACCOUNT = '01J90000000000000000000033';
     private const SEEDED_FILE = 'fil0000001';
     private const PDF = "%PDF-1.4\n% integration test\n";
     private const UUID_V4 = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/';
@@ -130,7 +136,6 @@ final class MockServerTest extends TestCase
     private function everyOperation(Oscar $oscar): void
     {
         $company = $this->server->companyId;
-        $organization = $this->server->organizationId;
 
         $count = static fn(iterable $items): int => \count(iterator_to_array($items, false));
         self::assertGreaterThan(0, $count($oscar->accounts->list($company)));
@@ -142,13 +147,8 @@ final class MockServerTest extends TestCase
         self::assertGreaterThan(0, $count($oscar->parties->list($company)));
         self::assertGreaterThan(0, $count($oscar->periods->list($company)));
         self::assertGreaterThan(0, $count($oscar->vatCodes->list($company)));
-        $organizations = [];
-        foreach ($oscar->organizations->list() as $item) {
-            $organizations[] = $item->id;
-        }
-        self::assertSame([$organization], $organizations);
         $companies = [];
-        foreach ($oscar->companies->list($organization) as $item) {
+        foreach ($oscar->companies->list() as $item) {
             $companies[] = $item->id;
         }
         self::assertSame([$company], $companies);
@@ -159,7 +159,6 @@ final class MockServerTest extends TestCase
         self::assertSame(self::INVOICE, $oscar->invoices->retrieve($company, self::INVOICE)->id);
         self::assertSame(self::PARTY, $oscar->parties->retrieve($company, self::PARTY)->id);
         self::assertSame($company, $oscar->companies->retrieve($company)->id);
-        self::assertSame($organization, $oscar->organizations->retrieve($organization)->id);
         $kind = $oscar->me->retrieve()->credential->kind;
         self::assertSame('api_key', $kind instanceof \BackedEnum ? $kind->value : $kind);
         self::assertSame(self::SEEDED_FILE, $oscar->files->retrieve($company, self::SEEDED_FILE)->id);
@@ -194,15 +193,23 @@ final class MockServerTest extends TestCase
         $oscar->invoices->issue($company, self::INVOICE);
         $oscar->invoices->revise($company, self::INVOICE, ReviseInvoiceBodyRequest::fromArray(['reason' => 'Wrong date', 'revision' => self::REVISION]));
         $oscar->parties->create($company, CreatePartyPayloadRequest::fromArray(['name' => 'Supplier OÜ', 'kind' => 'supplier', 'country' => 'EE']));
+        self::assertSame(self::PARTY, $oscar->parties->update($company, self::PARTY, new PatchedPartyUpdateRequest(email: 'billing@example.com'))->id);
+        $oscar->parties->setAddress($company, self::PARTY, new SetPartyAddressBodyRequest(address: 'Narva mnt 5, 10117 Tallinn'));
+        $oscar->invoices->bankAccounts($company, self::INVOICE);
+        $accounts = [self::BANK_ACCOUNT];
+        $oscar->invoices->setBankAccounts($company, self::INVOICE, new SetInvoiceBankAccountsBodyRequest(bank_account_ids: $accounts));
+        $oscar->invoices->setDefaultBankAccounts($company, new SetDefaultInvoiceBankAccountsPayloadRequest(bank_account_ids: $accounts));
 
         $stored = $oscar->files->upload($company, file: Upload::fromString(self::PDF, 'a.pdf', 'application/pdf'), kind: 'receipt');
         self::assertSame(self::PDF, $oscar->files->download($company, $stored->id)->contents());
+        $oscar->files->delete($company, $stored->id, new FileDeleteRequest(reason: 'Uploaded twice'));
+        self::assertNotNull($oscar->files->retrieve($company, $stored->id)->deleted_at);
 
         $log = $this->log();
         $bad = array_filter($log, static fn(array $entry): bool => ($entry['errors'] ?? []) !== [] || $entry['status'] >= 400);
         self::assertSame([], array_values($bad));
         $operations = array_unique(array_map(static fn(array $entry): mixed => $entry['operation_id'], $log), \SORT_REGULAR);
-        self::assertCount(44, $operations);
+        self::assertCount(48, $operations);
     }
 
     public function testPagination(): void

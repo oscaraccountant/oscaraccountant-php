@@ -15,7 +15,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksLedgerAccount extends JsonModel
 {
-    private const FIELDS = ['account_code', 'account_name', 'account_name_en', 'opening_base_minor', 'closing_base_minor', 'lines'];
+    private const FIELDS = ['account_code', 'account_name', 'account_name_en', 'opening_base_minor', 'closing_base_minor', 'hidden_corrections', 'lines'];
 
     /**
      * @param list<BooksLedgerLine> $lines
@@ -27,8 +27,18 @@ final class BooksLedgerAccount extends JsonModel
          * The English name of the account; null when it has none.
          */
         public readonly ?string $account_name_en,
+        /**
+         * The balance before the range, every line counted.
+         */
         public readonly int $opening_base_minor,
+        /**
+         * The balance at the end of the range, every line counted, hidden ones too.
+         */
         public readonly int $closing_base_minor,
+        /**
+         * How many lines of the range belong to a correction pair, so how many `include_corrections=false` leaves out. The same number whether they are included or not. The balances count them either way.
+         */
+        public readonly int $hidden_corrections,
         public readonly array $lines,
     ) {}
 
@@ -43,6 +53,7 @@ final class BooksLedgerAccount extends JsonModel
             account_name_en: Decode::required($data, 'account_name_en', $path, Decode::nullable(Decode::string(...))),
             opening_base_minor: Decode::required($data, 'opening_base_minor', $path, Decode::int(...)),
             closing_base_minor: Decode::required($data, 'closing_base_minor', $path, Decode::int(...)),
+            hidden_corrections: Decode::required($data, 'hidden_corrections', $path, Decode::int(...)),
             lines: Decode::required($data, 'lines', $path, Decode::listOf(BooksLedgerLine::fromJson(...))),
         ))->withExtra($data, self::FIELDS);
     }
@@ -55,6 +66,7 @@ final class BooksLedgerAccount extends JsonModel
             'account_name_en' => $this->account_name_en,
             'opening_base_minor' => $this->opening_base_minor,
             'closing_base_minor' => $this->closing_base_minor,
+            'hidden_corrections' => $this->hidden_corrections,
             'lines' => Encode::list($this->lines, static fn(mixed $item): mixed => Encode::model($item, $json)),
         ]);
     }

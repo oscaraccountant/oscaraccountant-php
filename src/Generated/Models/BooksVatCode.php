@@ -9,7 +9,11 @@ namespace OscarAccountant\Generated\Models;
 use OscarAccountant\Generated\Enums\BooksReviewStateEnum;
 use OscarAccountant\Generated\Enums\BooksVatCodeDirectionEnum;
 use OscarAccountant\Generated\Enums\BooksVatExigibilityEnum;
+use OscarAccountant\Generated\Enums\BooksVatRateTypeEnum;
+use OscarAccountant\Generated\Enums\BooksVatSchemeEnum;
+use OscarAccountant\Generated\Enums\BooksVatSupplyKindEnum;
 use OscarAccountant\Generated\Enums\BooksVatTreatmentEnum;
+use OscarAccountant\Generated\Enums\GoodsLocationEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -19,7 +23,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksVatCode extends JsonModel
 {
-    private const FIELDS = ['id', 'code', 'name', 'name_et', 'country', 'direction', 'treatment', 'self_assess', 'deductible_bps', 'exigibility', 'ec_sales', 'requires_party_vat', 'review_state', 'exempt_category', 'active', 'created_at', 'rates'];
+    private const FIELDS = ['id', 'code', 'name', 'name_et', 'country', 'direction', 'treatment', 'self_assess', 'deductible_bps', 'exigibility', 'ec_sales', 'requires_party_vat', 'review_state', 'exempt_category', 'special_scheme', 'member_state', 'supply_kind', 'rate_type', 'goods_location', 'active', 'created_at', 'rates'];
 
     /**
      * @param list<BooksVatRate> $rates
@@ -51,6 +55,41 @@ final class BooksVatCode extends JsonModel
          * An exempt code: `real_estate`, `insurance`, `financial` (counted in the VAT registration turnover) or `other` (not counted); null when not classified (counted).
          */
         public readonly ?string $exempt_category,
+        /**
+         * The scheme of the code (`oss_union`, `ioss`, `gb_vat` or `au_gst`); null for a code of no scheme. A picker shows such a code only on a date the company is registered for the scheme.
+         *
+         * * `oss_union` - oss_union
+         * * `ioss` - ioss
+         * * `gb_vat` - gb_vat
+         * * `au_gst` - au_gst
+         */
+        public readonly BooksVatSchemeEnum|string|null $special_scheme,
+        /**
+         * The state of consumption of a scheme code (`DE`, `EL`, `XI`; `GB` or `AU` for a foreign scheme); else null.
+         */
+        public readonly ?string $member_state,
+        /**
+         * A scheme code: `goods` or `services`; else null.
+         *
+         * * `goods` - goods
+         * * `services` - services
+         */
+        public readonly BooksVatSupplyKindEnum|string|null $supply_kind,
+        /**
+         * A scheme code: `standard`, `reduced` or `zero` (a foreign scheme only); else null.
+         *
+         * * `standard` - standard
+         * * `reduced` - reduced
+         * * `zero` - zero
+         */
+        public readonly BooksVatRateTypeEnum|string|null $rate_type,
+        /**
+         * A foreign scheme code of goods: `abroad` (shipped from Estonia) or `in_country` (held in the UK); null for a service and every other code.
+         *
+         * * `abroad` - abroad
+         * * `in_country` - in_country
+         */
+        public readonly GoodsLocationEnum|string|null $goods_location,
         public readonly bool $active,
         public readonly string $created_at,
         public readonly array $rates,
@@ -76,6 +115,11 @@ final class BooksVatCode extends JsonModel
             requires_party_vat: Decode::required($data, 'requires_party_vat', $path, Decode::bool(...)),
             review_state: Decode::required($data, 'review_state', $path, Decode::enum(BooksReviewStateEnum::class)),
             exempt_category: Decode::required($data, 'exempt_category', $path, Decode::nullable(Decode::string(...))),
+            special_scheme: Decode::required($data, 'special_scheme', $path, Decode::nullable(Decode::enum(BooksVatSchemeEnum::class))),
+            member_state: Decode::required($data, 'member_state', $path, Decode::nullable(Decode::string(...))),
+            supply_kind: Decode::required($data, 'supply_kind', $path, Decode::nullable(Decode::enum(BooksVatSupplyKindEnum::class))),
+            rate_type: Decode::required($data, 'rate_type', $path, Decode::nullable(Decode::enum(BooksVatRateTypeEnum::class))),
+            goods_location: Decode::required($data, 'goods_location', $path, Decode::nullable(Decode::enum(GoodsLocationEnum::class))),
             active: Decode::required($data, 'active', $path, Decode::bool(...)),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             rates: Decode::required($data, 'rates', $path, Decode::listOf(BooksVatRate::fromJson(...))),
@@ -99,6 +143,11 @@ final class BooksVatCode extends JsonModel
             'requires_party_vat' => $this->requires_party_vat,
             'review_state' => Encode::enum($this->review_state),
             'exempt_category' => $this->exempt_category,
+            'special_scheme' => Encode::enum($this->special_scheme),
+            'member_state' => $this->member_state,
+            'supply_kind' => Encode::enum($this->supply_kind),
+            'rate_type' => Encode::enum($this->rate_type),
+            'goods_location' => Encode::enum($this->goods_location),
             'active' => $this->active,
             'created_at' => $this->created_at,
             'rates' => Encode::list($this->rates, static fn(mixed $item): mixed => Encode::model($item, $json)),

@@ -7,8 +7,8 @@ namespace OscarAccountant\Tests\Unit;
 use OscarAccountant\Errors\ConfigurationError;
 use OscarAccountant\Errors\UsageError;
 use OscarAccountant\Generated\Models\CommandOutcome;
-use OscarAccountant\Generated\Models\Organization;
-use OscarAccountant\Generated\Models\PaginatedOrganizationList;
+use OscarAccountant\Generated\Models\Company;
+use OscarAccountant\Generated\Models\PaginatedCompanyList;
 use OscarAccountant\Generated\Runtime\Request;
 use OscarAccountant\Internal\BaseUrl;
 use OscarAccountant\Internal\Hooks;
@@ -165,18 +165,24 @@ final class HelpersTest extends TestCase
 
     public function testPaginatorIsLazyAndFollowsTheCursor(): void
     {
-        $organization = static fn(string $id, string $name): array => [
+        $company = static fn(string $id, string $name): array => [
             'id' => $id,
             'name' => $name,
-            'role' => 'owner',
-            'permissions' => [],
-            'companies' => [],
+            'registry_code' => '12345678',
+            'vat_number' => '',
+            'vat_status' => 'unregistered',
+            'vat_status_from' => null,
+            'legal_form' => 'ou',
+            'files_tsd_monthly' => false,
+            'state' => 'ready',
+            'core_company_id' => null,
+            'base_currency' => 'EUR',
             'created_at' => '2026-09-27T10:00:00Z',
             'updated_at' => '2026-09-27T10:00:00Z',
         ];
         $pages = [
-            ['items' => [$organization('o1', 'One')], 'next_cursor' => 'c2'],
-            ['items' => [$organization('o2', 'Two')], 'next_cursor' => null],
+            ['items' => [$company('c1', 'One')], 'next_cursor' => 'c2'],
+            ['items' => [$company('c2', 'Two')], 'next_cursor' => null],
         ];
         $log = new class {
             /**
@@ -184,20 +190,20 @@ final class HelpersTest extends TestCase
              */
             public array $requests = [];
         };
-        $fetch = static function (Request $request) use (&$pages, $log): PaginatedOrganizationList {
+        $fetch = static function (Request $request) use (&$pages, $log): PaginatedCompanyList {
             $log->requests[] = $request;
             $page = array_shift($pages) ?? throw new \LogicException('no page left');
 
-            return PaginatedOrganizationList::fromArray($page);
+            return PaginatedCompanyList::fromArray($page);
         };
-        $request = new Request('organizations_list', 'GET', '/api/organizations/', [], ['limit' => 1, 'cursor' => null], null, false, 'json');
-        /** @var Paginator<PaginatedOrganizationList, Organization> $paginator */
+        $request = new Request('companies_list', 'GET', '/api/companies/', [], ['limit' => 1, 'cursor' => null], null, false, 'json');
+        /** @var Paginator<PaginatedCompanyList, Company> $paginator */
         $paginator = new Paginator($fetch, $request);
         $iterator = $paginator->getIterator();
         self::assertSame(0, \count($log->requests));
         $names = [];
-        foreach ($iterator as $organization) {
-            $names[] = $organization->name;
+        foreach ($iterator as $item) {
+            $names[] = $item->name;
         }
         self::assertSame(['One', 'Two'], $names);
         [$first, $second] = $log->requests;

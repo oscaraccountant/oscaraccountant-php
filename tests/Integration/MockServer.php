@@ -28,7 +28,6 @@ final class MockServer
         public readonly string $url,
         public readonly string $apiKey,
         public readonly string $companyId,
-        public readonly string $organizationId,
     ) {}
 
     public static function get(): self
@@ -78,7 +77,7 @@ final class MockServer
             proc_terminate($process);
             Assert::fail("The mock server did not start:\n" . file_get_contents((string) $log));
         }
-        $server = new self(self::text($info['url'] ?? null), self::text($info['api_key'] ?? null), self::text($info['company_id'] ?? null), self::text($info['organization_id'] ?? null));
+        $server = new self(self::text($info['url'] ?? null), self::text($info['api_key'] ?? null), self::text($info['company_id'] ?? null));
         register_shutdown_function(static function () use ($server, $process, $pipes): void {
             try {
                 $server->control('POST', 'shutdown');

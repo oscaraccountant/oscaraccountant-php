@@ -16,7 +16,7 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksDocument extends JsonModel
 {
-    private const FIELDS = ['id', 'sha256', 'legacy_sha1', 'kind', 'filename', 'media_type', 'size_bytes', 'storage_ref', 'received_on', 'retention_until', 'legal_hold', 'created_at', 'referenced', 'file_id', 'download_url'];
+    private const FIELDS = ['id', 'sha256', 'legacy_sha1', 'kind', 'filename', 'media_type', 'size_bytes', 'storage_ref', 'received_on', 'retention_until', 'legal_hold', 'created_at', 'referenced', 'withdrawn', 'withdrawn_at', 'file_id', 'stored_filename', 'download_url'];
 
     public function __construct(
         public readonly string $id,
@@ -35,13 +35,22 @@ final class BooksDocument extends JsonModel
         public readonly bool $legal_hold,
         public readonly string $created_at,
         /**
-         * True when the books refer to the document (an invoice, a statement, an event, a return).
+         * True when any record of the books refers to the document: an invoice, a statement, an event, a VAT return, an exchange rate, the dividend facts, a registration or a valuation.
          */
         public readonly bool $referenced,
+        /**
+         * True when the file was deleted: the books keep the record, and nothing links it again.
+         */
+        public readonly bool $withdrawn,
+        public readonly ?string $withdrawn_at,
         /**
          * The sqid of the stored file (`files/{file_id}/`), or null when none is stored.
          */
         public readonly ?string $file_id,
+        /**
+         * The name of the stored file now, or null when none is stored or it was deleted. A file uploaded again after its deletion has the name of that upload, while `filename` keeps the first one.
+         */
+        public readonly ?string $stored_filename,
         /**
          * The API path that gives a short-lived URL of the bytes (`files/{file_id}/download/`), or null.
          */
@@ -67,7 +76,10 @@ final class BooksDocument extends JsonModel
             legal_hold: Decode::required($data, 'legal_hold', $path, Decode::bool(...)),
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             referenced: Decode::required($data, 'referenced', $path, Decode::bool(...)),
+            withdrawn: Decode::required($data, 'withdrawn', $path, Decode::bool(...)),
+            withdrawn_at: Decode::required($data, 'withdrawn_at', $path, Decode::nullable(Decode::string(...))),
             file_id: Decode::required($data, 'file_id', $path, Decode::nullable(Decode::string(...))),
+            stored_filename: Decode::required($data, 'stored_filename', $path, Decode::nullable(Decode::string(...))),
             download_url: Decode::required($data, 'download_url', $path, Decode::nullable(Decode::string(...))),
         ))->withExtra($data, self::FIELDS);
     }
@@ -88,7 +100,10 @@ final class BooksDocument extends JsonModel
             'legal_hold' => $this->legal_hold,
             'created_at' => $this->created_at,
             'referenced' => $this->referenced,
+            'withdrawn' => $this->withdrawn,
+            'withdrawn_at' => $this->withdrawn_at,
             'file_id' => $this->file_id,
+            'stored_filename' => $this->stored_filename,
             'download_url' => $this->download_url,
         ]);
     }

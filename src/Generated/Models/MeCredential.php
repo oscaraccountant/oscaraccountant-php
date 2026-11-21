@@ -28,7 +28,7 @@ final class MeCredential extends JsonModel
          */
         public readonly ?array $scopes,
         /**
-         * True for a staff API key: a key of no organization that acts as owner in every organization, made in the admin by a superuser. `user` is then its creator.
+         * True for a staff API key: a key of no company that acts as owner in every company, made in the admin by a superuser. `user` is then its creator.
          */
         public readonly bool $staff_key,
     ) {}

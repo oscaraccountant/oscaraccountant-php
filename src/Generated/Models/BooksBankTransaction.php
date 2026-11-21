@@ -9,6 +9,8 @@ namespace OscarAccountant\Generated\Models;
 use OscarAccountant\Generated\Enums\BooksBankDirectionEnum;
 use OscarAccountant\Generated\Enums\BooksBankTransactionStatusEnum;
 use OscarAccountant\Generated\Enums\BooksPartySourceEnum;
+use OscarAccountant\Generated\Enums\ReceiptDetailEnum;
+use OscarAccountant\Generated\Enums\ReceiptStateEnum;
 use OscarAccountant\Generated\Runtime\Decode;
 use OscarAccountant\Generated\Runtime\Encode;
 use OscarAccountant\Generated\Runtime\JsonModel;
@@ -18,10 +20,11 @@ use OscarAccountant\Generated\Runtime\JsonModel;
  */
 final class BooksBankTransaction extends JsonModel
 {
-    private const FIELDS = ['id', 'bank_account_id', 'bank_account_label', 'currency', 'statement_id', 'external_id', 'booking_date', 'value_date', 'direction', 'method', 'amount_minor', 'fee_minor', 'total_minor', 'orig_currency', 'orig_minor', 'bank_rate', 'balance_after_minor', 'counterparty_name', 'counterparty_account', 'counterparty_bic', 'description', 'reference', 'card_last4', 'mcc', 'is_internal', 'party_id', 'party_name', 'party_source', 'created_at', 'suspense_residual_minor', 'status', 'has_document', 'file_ids'];
+    private const FIELDS = ['id', 'bank_account_id', 'bank_account_label', 'currency', 'statement_id', 'external_id', 'booking_date', 'value_date', 'direction', 'method', 'amount_minor', 'fee_minor', 'total_minor', 'orig_currency', 'orig_minor', 'bank_rate', 'balance_after_minor', 'counterparty_name', 'counterparty_account', 'counterparty_bic', 'description', 'reference', 'card_last4', 'mcc', 'is_internal', 'party_id', 'party_name', 'party_source', 'created_at', 'suspense_residual_minor', 'status', 'migrated_event_id', 'has_document', 'file_ids', 'retraction', 'receipt_state', 'receipt_detail', 'match_proposal_id', 'matched_invoice_candidates'];
 
     /**
      * @param list<string> $file_ids
+     * @param list<BooksBankTransactionInvoiceCandidate> $matched_invoice_candidates
      */
     public function __construct(
         public readonly string $id,
@@ -74,13 +77,47 @@ final class BooksBankTransaction extends JsonModel
         public readonly ?int $suspense_residual_minor,
         public readonly BooksBankTransactionStatusEnum|string $status,
         /**
-         * True when an uploaded file explains the transaction.
+         * The imported accounting event a `migrated` line is linked to (a migration import); null for every other line.
+         */
+        public readonly ?string $migrated_event_id,
+        /**
+         * True when a file explains the transaction: an upload for it, or a file of the purchase invoice a payment allocation matched to it.
          */
         public readonly bool $has_document,
         /**
-         * The sqids of the uploaded files that explain it (`files/{file_id}/`).
+         * The sqids of the files that explain it (`files/{file_id}/`): uploads, and the files of matched purchase invoices.
          */
         public readonly array $file_ids,
+        /**
+         * Why a `retracted` line is out of the books; null for every other line.
+         */
+        public readonly ?BooksBankTransactionRetraction $retraction,
+        /**
+         * A payment to explain (money out still open that no file of a matched invoice explains): `missing` (no receipt and no booked invoice), `receipt_not_booked` (a person linked a file, the payment is not booked yet), `invoice_not_matched` (a posted invoice still open fits the payment: a linked file became it, a match proposal names it, or it is the only open invoice of the party with the same amount). Null for every other transaction.
+         *
+         * * `missing` - missing
+         * * `receipt_not_booked` - receipt_not_booked
+         * * `invoice_not_matched` - invoice_not_matched
+         */
+        public readonly ReceiptStateEnum|string|null $receipt_state,
+        /**
+         * `receipt_not_booked` only: `reading` (the file is being read), `review` (its draft waits for a person), `recorded` (the invoice is recorded, not posted), `failed` (the reading failed), `no_extraction` (the file is not read, for example an image or a contract). Null otherwise, and when none of these applies.
+         *
+         * * `reading` - reading
+         * * `review` - review
+         * * `recorded` - recorded
+         * * `failed` - failed
+         * * `no_extraction` - no_extraction
+         */
+        public readonly ReceiptDetailEnum|string|null $receipt_detail,
+        /**
+         * `invoice_not_matched` by a match proposal that waits for a person: its sqid; null otherwise.
+         */
+        public readonly ?string $match_proposal_id,
+        /**
+         * `invoice_not_matched` only: the posted invoices that fit the payment; empty otherwise.
+         */
+        public readonly array $matched_invoice_candidates,
     ) {}
 
     /**
@@ -120,8 +157,14 @@ final class BooksBankTransaction extends JsonModel
             created_at: Decode::required($data, 'created_at', $path, Decode::string(...)),
             suspense_residual_minor: Decode::required($data, 'suspense_residual_minor', $path, Decode::nullable(Decode::int(...))),
             status: Decode::required($data, 'status', $path, Decode::enum(BooksBankTransactionStatusEnum::class)),
+            migrated_event_id: Decode::required($data, 'migrated_event_id', $path, Decode::nullable(Decode::string(...))),
             has_document: Decode::required($data, 'has_document', $path, Decode::bool(...)),
             file_ids: Decode::required($data, 'file_ids', $path, Decode::listOf(Decode::string(...))),
+            retraction: Decode::required($data, 'retraction', $path, Decode::nullable(BooksBankTransactionRetraction::fromJson(...))),
+            receipt_state: Decode::required($data, 'receipt_state', $path, Decode::nullable(Decode::enum(ReceiptStateEnum::class))),
+            receipt_detail: Decode::required($data, 'receipt_detail', $path, Decode::nullable(Decode::enum(ReceiptDetailEnum::class))),
+            match_proposal_id: Decode::required($data, 'match_proposal_id', $path, Decode::nullable(Decode::string(...))),
+            matched_invoice_candidates: Decode::required($data, 'matched_invoice_candidates', $path, Decode::listOf(BooksBankTransactionInvoiceCandidate::fromJson(...))),
         ))->withExtra($data, self::FIELDS);
     }
 
@@ -159,8 +202,14 @@ final class BooksBankTransaction extends JsonModel
             'created_at' => $this->created_at,
             'suspense_residual_minor' => $this->suspense_residual_minor,
             'status' => Encode::enum($this->status),
+            'migrated_event_id' => $this->migrated_event_id,
             'has_document' => $this->has_document,
             'file_ids' => $this->file_ids,
+            'retraction' => Encode::model($this->retraction, $json),
+            'receipt_state' => Encode::enum($this->receipt_state),
+            'receipt_detail' => Encode::enum($this->receipt_detail),
+            'match_proposal_id' => $this->match_proposal_id,
+            'matched_invoice_candidates' => Encode::list($this->matched_invoice_candidates, static fn(mixed $item): mixed => Encode::model($item, $json)),
         ]);
     }
 }
